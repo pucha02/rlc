@@ -1,7 +1,11 @@
 import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
 
 const Date = () => {
-  let dateList = ["13", "23", "11"];
+  let dateList = [
+    {id:1, name: "1"},
+    {id:2, name: "11"},
+    {id:3, name: "15"}
+  ];
 
   return (
     <div>

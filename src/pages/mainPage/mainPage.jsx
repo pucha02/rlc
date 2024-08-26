@@ -1,34 +1,20 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Languages from "../chooseLanguage/language";
+import Teachers from "../chooseTeacher/teachers";
+import Date from "../chooseDate/date";
+import Courses from "../chooseCourse/courses";
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense } from "react";
-import { lazy } from "react";
-import { useState } from "react";
-var i = 0
 const MainPage = () => {
-  const Languages = lazy(() => import("../chooseLanguage/language"))
-  const Teachers = lazy(() => import("../chooseTeacher/teachers"))
-  const Date = lazy(() => import("../chooseDate/date"))
-  const Courses = lazy(() => import("../chooseCourse/courses"))
-
-  const [component, setComponent] = useState(null);
-
-  const arr = [<Languages />, <Teachers/>, <Date/>, <Courses/>]
-
-
-  const switchTab = () => {
-    setComponent(arr[i])
-    i++
-  }
 
   return (
-    <div>
-      <p>MainPage</p>
-      <Suspense fallback={<div>Loading...</div>}>
-        {Languages}
-        {component}
-      </Suspense>
-      <button onClick={switchTab}>Next</button>
-    </div>
+    <Router>
+      <Routes>
+        <Route exact path="/" element={<Languages />}></Route>
+        <Route exact path=":name/:date/:name" element={<Teachers />}></Route>
+        <Route exact path=":name/:date" element={<Date />}></Route>
+        <Route exact path=":name" element={<Courses />}></Route>
+      </Routes>
+    </Router>
   );
 };
 

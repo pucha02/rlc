@@ -1,7 +1,10 @@
-import { arrayIteration } from "../../common/utils/smallFn/iterateFn";  
+import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
 
 const Languages = () => {
-  let langList = ["Анеглійська", "Іспанська"];
+  let langList = [
+    {id:1, name: 'English'},
+    {id:2, name: 'Spanish'}
+  ];
 
   return (
     <div>
