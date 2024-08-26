@@ -1,10 +1,14 @@
+import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
+
 const Date = () => {
-    return (
-        <div>
-            <p>Date</p>
+  let dateList = ["13", "23", "11"];
 
-        </div>
-    )
-}
+  return (
+    <div>
+      <h1>Виберіть дату</h1>
+      {arrayIteration(dateList)}
+    </div>
+  );
+};
 
-export default Date
+export default Date;

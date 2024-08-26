@@ -1,10 +1,14 @@
+import { arrayIteration } from "../../common/utils/smallFn/iterateFn";  
+
 const Languages = () => {
-    return (
-        <div>
-            <p>Languages</p>
+  let langList = ["Анеглійська", "Іспанська"];
 
-        </div>
-    )
-}
+  return (
+    <div>
+      <h1>Оберіть мову</h1>
+      <ul>{arrayIteration(langList)}</ul>
+    </div>
+  );
+};
 
-export default Languages
+export default Languages;

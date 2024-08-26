@@ -1,10 +1,13 @@
-const Teachers = () => {
+import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
+
+const Teachers = ({}) => {
+  let teacherList = ['Anna', 'Petro', 'Klyim', 'Gwintivka']  
     return (
-        <div>
-            <p>Teachers</p>
+    <div>
+      <h1>Оберіть вчителя</h1>
+      {arrayIteration(teacherList)}
+    </div>
+  );
+};
 
-        </div>
-    )
-}
-
-export default Teachers
+export default Teachers;
