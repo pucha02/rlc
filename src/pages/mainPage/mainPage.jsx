@@ -1,9 +1,7 @@
 import Languages from "../chooseLanguage/language";
 
 const MainPage = () => {
-
-
-  return (
+ return (
     <div>
       <p>MainPage</p>
       <Languages/>
