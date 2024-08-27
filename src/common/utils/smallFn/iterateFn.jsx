@@ -5,7 +5,7 @@ export function arrayIteration(array) {
     <ul>
       {array.map((item) => (
         <li key={item.id}>
-          <Link to={item.name} state={{ id: item.id }}>
+          <Link to={item.name} state={item}>
             {item.name}
           </Link>
         </li>

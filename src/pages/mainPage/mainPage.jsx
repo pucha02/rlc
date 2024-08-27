@@ -1,19 +1,22 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Languages from "../chooseLanguage/language";
-import Teachers from "../chooseTeacher/teachers";
-import Date from "../chooseDate/date";
-import Courses from "../chooseCourse/courses";
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+const Languages = lazy(() => import('../chooseLanguage/language'));
+const Teachers = lazy(() => import('../chooseTeacher/teachers'));
+const Date = lazy(() => import('../chooseDate/date'));
+const Courses = lazy(() => import('../chooseCourse/courses'));
 
 const MainPage = () => {
-
   return (
     <Router>
-      <Routes>
-        <Route exact path="/" element={<Languages />}></Route>
-        <Route exact path=":name/:date/:name" element={<Teachers />}></Route>
-        <Route exact path=":name/:date" element={<Date />}></Route>
-        <Route exact path=":name" element={<Courses />}></Route>
-      </Routes>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Languages />} />
+          <Route path=":name" element={<Courses />} />
+          <Route path=":name/:date" element={<Date />} />
+          <Route path=":name/:date/:name" element={<Teachers />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 };
