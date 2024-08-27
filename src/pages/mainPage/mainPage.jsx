@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+// Lazy-loaded components
 const Languages = lazy(() => import('../chooseLanguage/language'));
 const Teachers = lazy(() => import('../chooseTeacher/teachers'));
 const Date = lazy(() => import('../chooseDate/date'));
@@ -12,9 +13,10 @@ const MainPage = () => {
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<Languages />} />
-          <Route path=":name" element={<Courses />} />
+          <Route path=":name/:date/:teacherName" element={<Teachers />} />
           <Route path=":name/:date" element={<Date />} />
-          <Route path=":name/:date/:name" element={<Teachers />} />
+          <Route path="/teachers/:name/teacherName/:name" element={<Date />} />
+          <Route path=":name" element={<Courses />} />
         </Routes>
       </Suspense>
     </Router>
