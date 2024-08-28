@@ -3,12 +3,12 @@ import { useLocation } from "react-router-dom";
 
 const Courses = () => {
   let coursesList = [
-    {id:1, name: 'A1', lang: 'English'},
-    {id:2, name: 'A2', lang: 'Spanish'},
-    {id:3, name: 'B1', lang: 'Spanish'},
-    {id:4, name: 'B2', lang: 'English'},
-    {id:5, name: 'C1', lang: 'English'},
-    {id:6, name: 'C2', lang: 'Spanish'}
+    {id:1, name: 'A1', lang: 'English', tab: 'level'},
+    {id:2, name: 'A2', lang: 'Spanish', tab: 'level'},
+    {id:3, name: 'B1', lang: 'Spanish', tab: 'level'},
+    {id:4, name: 'B2', lang: 'English', tab: 'level'},
+    {id:5, name: 'C1', lang: 'English', tab: 'level'},
+    {id:6, name: 'C2', lang: 'Spanish', tab: 'level'}
   ];
 
   let state = useLocation().state

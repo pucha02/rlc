@@ -5,6 +5,7 @@ const Languages = lazy(() => import('../chooseLanguage/language'));
 const Teachers = lazy(() => import('../chooseTeacher/teachers'));
 const Date = lazy(() => import('../chooseDate/date'));
 const Courses = lazy(() => import('../chooseCourse/courses'));
+const FinalPage = lazy(() => import('../testFinalPage/testFinalPage'));
 
 const MainPage = () => {
   return (
@@ -15,6 +16,7 @@ const MainPage = () => {
           <Route path=":name" element={<Courses />} />
           <Route path=":name/:date" element={<Date />} />
           <Route path=":name/:date/:name" element={<Teachers />} />
+          <Route path=':name/:date/:name/final' element={<FinalPage/>}/>
         </Routes>
       </Suspense>
     </Router>

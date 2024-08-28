@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 
 const Date = () => {
   let dateList = [
-    {id:1, name: "1"},
-    {id:2, name: "11"},
-    {id:3, name: "15"}
+    {id:1, name: "1", tab: 'date'},
+    {id:2, name: "11", tab: 'date'},
+    {id:3, name: "15", tab: 'date'}
   ];
 
   let state = useLocation().state
