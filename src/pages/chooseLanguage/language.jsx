@@ -1,4 +1,4 @@
-import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
+import { ArrayIteration } from "../../common/utils/smallFn/iterateFn";
 
 const Languages = () => {
   let langList = [
@@ -9,7 +9,7 @@ const Languages = () => {
   return (
     <div>
       <h1>Оберіть мову</h1>
-      <ul>{arrayIteration(langList)}</ul>
+      <ul>{ArrayIteration(langList, 'name', '/course')}</ul>
     </div>
   );
 };

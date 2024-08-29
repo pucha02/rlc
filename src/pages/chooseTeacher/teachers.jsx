@@ -1,30 +1,23 @@
-import { arrayIteration } from "../../common/utils/smallFn/iterateFn";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-
+import { ArrayIteration } from "../../common/utils/smallFn/iterateFn";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import ButtonNext from "../../common/components/buttonNext/buttonNext";
 
 const Teachers = () => {
   let teacherList = [
-    {id:1, name: 'Anna', lang: 'en', tab: 'teacher'},
-    {id:2, name: 'Petro', lang: 'sp', tab: 'teacher'},
-    {id:3, name: 'Klyim', lang: 'en', tab: 'teacher'},
-    {id:4, name: 'Gwintivka', lang: 'sp', tab: 'teacher'},
-  ]  
+    { id: 1, teacherName: 'Anna', lang: 'en', tab: 'teacher' },
+    { id: 2, teacherName: 'Petro', lang: 'sp', tab: 'teacher' },
+    { id: 3, teacherName: 'Klyim', lang: 'en', tab: 'teacher' },
+    { id: 4, teacherName: 'Gwintivka', lang: 'sp', tab: 'teacher' },
+  ];
 
-  const navigate = useNavigate();
+  let state = useLocation().pathname;
 
-    const handleFinish = () => {
-        navigate('/final');
-      };
-
-  let state = useLocation().state
-
-    return (
+  return (
     <div>
       <h1>Оберіть вчителя</h1>
-      {arrayIteration(teacherList, '/final')}
-      <ButtonNext/>
+      {ArrayIteration(teacherList, 'teacherName', '/final')}
+      <ButtonNext />
       {console.log(state)}
     </div>
   );
