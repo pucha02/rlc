@@ -58,7 +58,7 @@ const UserProfile = () => {
                                 <li key={index}>
                                     <strong>Order ID:</strong> {order._id} <br />
                                     <strong>Order Status:</strong> {order.order} <br />
-                                    
+                                    <strong>Order times</strong> {order.time}
                                 </li>
                             ))}
                         </ul>

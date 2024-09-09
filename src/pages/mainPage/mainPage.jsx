@@ -1,28 +1,40 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backet from '../backet/backet';
-
+import AddBookingForm from '../../services/AdminPanel/teacher_schedule/AddBookingForm';
+import EditBookingForm from '../../services/AdminPanel/teacher_schedule/EditBookingForm';
 const Languages = lazy(() => import('../chooseLanguage/language'));
 const Teachers = lazy(() => import('../chooseTeacher/teachers'));
 const Date = lazy(() => import('../chooseDate/date'));
 const Courses = lazy(() => import('../chooseCourse/courses'));
 const FinalPage = lazy(() => import('../testFinalPage/testFinalPage'));
 const UserProfile = lazy(() => import('../regPages/UserProfile'));
+const BookingList = lazy(() => import('../../services/AdminPanel/teacher_schedule/BookingList'));
+const TeacherList = lazy(() => import('../../services/AdminPanel/teacher_schedule/TeacherList'));
+const LanguagesList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LanguagesList'));
+const LevelList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LevelsList'));
 
 
 const MainPage = () => {
   localStorage.setItem('data', {})
+  localStorage.setItem('selectedDates', {})
   return (
     <Router>
       <Backet />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          <Route path="/" element={<Languages />} />
+          <Route path="/" element={<Languages schoolId='1'/>} />
           <Route path="/course" element={<Courses />} />
           <Route path="/date" element={<Date />} />
-          <Route path="/teacher" element={<Teachers />} />
+          <Route path="/teacher" element={<Teachers schoolId='1'/>} />
           <Route path='/final' element={<FinalPage/>}/>
           <Route path="/cabinet" element={<UserProfile/>}/>
+          <Route path="/admin" element={<TeacherList/>}/>
+          <Route path="/add-booking" element={<AddBookingForm />} />
+          <Route path="/bookinglist" element={<BookingList />} />
+          <Route path="/edit-booking/:id" element={<EditBookingForm />} />
+          <Route path="/languageslist" element={<LanguagesList/>}/>
+          <Route path="/levelList" element={<LevelList/>}/>
         </Routes>
       </Suspense>
     </Router>

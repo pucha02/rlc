@@ -9,7 +9,7 @@ const fetchUserData = async (setUser, axios, setUsername = null, setEmail = null
             console.log('Response Data:', response.data);
 
             const { user, orders } = response.data;
-            console.log('Response Data:', orders[0]);
+
             setUser(user);
             setUsername(user.username);
             setEmail(user.email);

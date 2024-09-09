@@ -1,30 +1,44 @@
-import { ArrayIteration } from "../../common/utils/smallFn/iterateFn";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Teachers from "../chooseTeacher/teachers";
+import Calendar2 from "./testCalendarWithDatePickerDefault";
 
 const Date = () => {
-  let dateList = [
-    {id:1, date: "1", tab: 'date'},
-    {id:2, date: "11", tab: 'date'},
-    {id:3, date: "15", tab: 'date'}
-  ];
 
-  
+  const [final, setFinal] = useState(null)
+
+  const location = useLocation();
+  const { teacherDate } = location.state || {};
+  const { level } = location.state || {};
+  const { allTeachers } = location.state || {};
+  const { lang } = location.state || {};
+  const { teacherId } = location.state || {};
 
 
-  let state = useLocation().state
-  let path = useLocation().pathname
+  const HandleFinish = () => {
+    if (allTeachers) {
+      return '/teacher';
+    } else if (teacherDate) {
+      return '/final';
+    }
 
+  };
+
+  useEffect(() => {
+    if (teacherDate) {
+      setFinal(teacherDate[0].lang)
+    }
+    else if (allTeachers) {
+      setFinal(lang[0])
+    }
+
+  }, [])
   return (
     <div>
       <h1>Виберіть дату</h1>
-      {ArrayIteration(dateList, 'date', '/teacher')}
-      
-      <Link to={'/teacher'}>
-        <div>Choose Teacher</div>
-      </Link>
+      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId }}><button>Далі</button></Link>
+      <Calendar2 />
+
     </div>
   );
 };

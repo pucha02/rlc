@@ -19,14 +19,14 @@ const itemProductSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
     username: { type: String },
-    email: { type: String, required: true, unique: true }, // Ensure uniqueness for user emails
+    email: { type: String, unique: true }, // Ensure uniqueness for user emails
     phone: { type: String },
     password: { type: String },
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }] // Ensure correct reference
 });
 
 // const orderSchema = new mongoose.Schema({
-//     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User',  },
 //     items: [{ item: { type: mongoose.Schema.Types.ObjectId, ref: 'ItemProduct' }, quantity: Number, name: String, cost: Number }],
 //     totalCost: Number,
 //     status: { type: String, default: 'Pending' }
@@ -37,7 +37,8 @@ const orderSchema = new mongoose.Schema({
     username: { type: String },
     email: { type: String }, // Removed 'unique: true'
     phone: { type: String }, // Removed 'unique: true'
-    order: { type: String, default: 'Pending' }
+    order: { type: String, default: 'Pending' },
+    time: { type: String, default: 'Pending' },
 });
 
 

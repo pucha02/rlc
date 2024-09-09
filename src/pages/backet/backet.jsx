@@ -3,7 +3,7 @@ import { useState } from "react";
 import Modal from "../../common/components/modal/modal"
 import Registration from "../regPages/Registration";
 import Login from "../regPages/Login";
-
+import './backet.css'
 
 const Backet = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,9 +24,9 @@ const Backet = () => {
     }
 
     return (
-        <div>
+        <div className="backet-container">
             <div className="reg-btn-container">
-                <div className="reg-btn" style={{ cursor: 'pointer' }} onClick={() => toggleModal(true)}>Вхід / Реєстрація</div>
+                <div className="reg-btn" onClick={() => toggleModal(true)}>Вхід / Реєстрація</div>
                 <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
                     <div className="tabs">
                         <button
@@ -45,8 +45,8 @@ const Backet = () => {
                     {activeTab === 'login' ? <Login /> : <Registration />}
                 </Modal>
             </div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-                <div onClick={handlePersonalCabinetClick} style={{ cursor: 'pointer' }}>PersonalCabinet</div>
+            <div className="personal-cabinet-btn" onClick={handlePersonalCabinetClick}>
+                PersonalCabinet
             </div>
         </div>
     )

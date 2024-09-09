@@ -1,0 +1,66 @@
+/* Backet.css */
+.backet-container {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 430px;
+    margin: 0 auto;
+
+}
+
+
+
+.reg-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.reg-btn:hover {
+    background-color: #0056b3;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tabs button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.tabs button.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.tabs button:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+
+.personal-cabinet-btn {
+    background-color: #28a745;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.personal-cabinet-btn:hover {
+    background-color: #218838;
+}
