@@ -19,7 +19,7 @@ const FinalPage = () => {
   const { level } = location.state || {};
   const { lang_from_general_cal } = location.state || {};
   const { teacherId } = location.state || {};
-  
+  const { teacherName } = location.state || {};
   console.log(lang_from_general_cal, level, teacherId)
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const FinalPage = () => {
 
       const existingData = localStorage.getItem('data');
       const selectedTimes = localStorage.getItem('selectedDates');
-      console.log(existingData)
+      console.log(localStorage)
       setOrder(existingData);
       setTime(selectedTimes);
       if (language) {
@@ -44,20 +44,32 @@ const FinalPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-
       const response = await axios.post(
         `http://localhost:5000/registerorder`,
-        { username, email, phone, order, time, lang, levelName, teacherId }
+        { username, email, phone, order, time, lang, levelName, teacherId, teacherName }
       );
-
+  
+      console.log(lang, levelName, teacherName, time);
+  
+      // Если все успешно, выводим сообщение
       setMessage(response.data.message);
-      
+  
     } catch (error) {
-      setMessage(error.response ? error.response.data.error : 'An error occurred');
+      // Если у пользователя уже есть забронированные слоты
+      if (error.response && error.response.status === 400 && error.response.data.bookedSlots) {
+        // Форматируем все забронированные слоты
+        const bookedTimes = error.response.data.bookedSlots.map(slot => new Date(slot).toLocaleString());
+        setMessage(`Ви вже маєте запис на час: ${bookedTimes.join(', ')}`);
+      } else {
+        // Общая ошибка
+        setMessage(error.response ? error.response.data.error : 'An error occurred');
+      }
     }
   };
+  
+  
 
   return (
     <div>

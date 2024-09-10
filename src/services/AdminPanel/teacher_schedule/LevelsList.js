@@ -11,30 +11,18 @@ function LevelList() {
 
     return (
         <div>
-            <h1>Bookings</h1>
+            <h1>Оберіть курс</h1>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>All Number</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        booking.level.map(level => (
-                            <tr key={level._id}>
-                                <td>
-                                    <Link to={`/bookinglist`} state={{ booking, lang: lang, level: level.levelName, teacherId: teacherId }}>{level.levelName}</Link>
-                                </td>
-                            </tr>
-                        ))
+            <div className='teacher-list'>
+                {
+                    booking.level.map(level => (
 
-                    }
-                </tbody>
-            </table>
+                        <Link to={`/bookinglist`} className="teacher-item" state={{ booking, lang: lang, level: level.levelName, teacherId: teacherId }}>{level.levelName}</Link>
+
+                    ))
+
+                }
+            </div>
         </div>
     );
 }

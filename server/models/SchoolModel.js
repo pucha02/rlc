@@ -1,3 +1,4 @@
+const { type } = require('@testing-library/user-event/dist/type');
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -22,7 +23,8 @@ const NonWorkTimeSchema = new Schema({
 
 const WorkTimeSchema = new Schema({
     time: { type: Date },
-    slots: { type: Number }, // Adjusted to Number
+    slots: { type: Number }, 
+    bookings:{type: Array}
 });
 // Level Schema
 const LevelSchema = new Schema({

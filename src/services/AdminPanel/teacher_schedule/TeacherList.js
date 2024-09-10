@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import SchoolList from '../create_school/SchoolList';
-import SchoolDetail from '../data_school/SchoolDetail';
+import './TeacherList.css'; // Import the CSS file
 
 function TeacherList() {
     const [bookings, setBookings] = useState([]);
@@ -20,31 +19,26 @@ function TeacherList() {
     }, []);
 
     return (
-        <div>
-            <SchoolList/>
-            <SchoolDetail/>
-            <h1>Bookings</h1>
+        <div className="teacher-list-container">
+            <div className="teacher-links">
+                <Link to={'/admin/school-detail'} className="nav-link">Дані школи</Link>
+                <Link to={'/admin/school-list'} className="nav-link">Перелік шкіл</Link>
+            </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>All Number</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {bookings.map(booking => (
+            <h1 className="teacher-list-title">Оберіть вчителя</h1>
 
-                        <tr key={booking._id}>
-                            <td>
-                                <Link to={`/languageslist`} state={{ booking, teacherId: booking.data.teacherId }}>{booking.data.teacherName}</Link>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="teacher-list">
+                {bookings.map(booking => (
+                    <Link
+                        to={`/languageslist`}
+                        state={{ booking, teacherId: booking.data.teacherId }}
+                        key={booking.id}
+                        className="teacher-item"
+                    >
+                        {booking.data.teacherName}
+                    </Link>
+                ))}
+            </div>
         </div>
     );
 }

@@ -13,6 +13,12 @@ const BookingList = lazy(() => import('../../services/AdminPanel/teacher_schedul
 const TeacherList = lazy(() => import('../../services/AdminPanel/teacher_schedule/TeacherList'));
 const LanguagesList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LanguagesList'));
 const LevelList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LevelsList'));
+const SchoolDetail = lazy(() => import('../../services/AdminPanel/data_school/SchoolDetail/SchoolDetail'));
+const SchoolList = lazy(() => import('../../services/AdminPanel/create_school/SchoolList'));
+
+
+
+
 
 
 const MainPage = () => {
@@ -30,6 +36,8 @@ const MainPage = () => {
           <Route path='/final' element={<FinalPage/>}/>
           <Route path="/cabinet" element={<UserProfile/>}/>
           <Route path="/admin" element={<TeacherList/>}/>
+          <Route path="/admin/school-detail" element={<SchoolDetail/>}/>
+          <Route path="/admin/school-list" element={<SchoolList/>}/>
           <Route path="/add-booking" element={<AddBookingForm />} />
           <Route path="/bookinglist" element={<BookingList />} />
           <Route path="/edit-booking/:id" element={<EditBookingForm />} />

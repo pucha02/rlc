@@ -20,6 +20,13 @@ const Languages = ({ schoolId }) => {
   };
 
   useEffect(() => {
+    const keys = Object.keys(localStorage);
+
+    keys.forEach(key => {
+      if (key.startsWith('availableTimes_')) {
+        localStorage.removeItem(key);
+      }
+    });
     fetchSchoolData();
   }, [schoolId]);
 

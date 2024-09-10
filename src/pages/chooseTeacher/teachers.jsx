@@ -11,7 +11,6 @@ const Teachers = ({ schoolId }) => {
   const [error, setError] = useState(null);
   const [allTeachers, setAllTeachers] = useState([]);
   const [lang, setLang] = useState();
-  const [selectedSlots, setSelectedSlots] = useState([]);
 
   const location = useLocation();
   const { level } = location.state || {};
@@ -54,7 +53,7 @@ const Teachers = ({ schoolId }) => {
                 parsedSelectedTimes.some(selectedDate =>
                   l.date.some(dateObj =>
                     dateObj.workTime.some(workTimeSlot =>
-                      new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime()
+                      new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
                     )
                   )
                 )
@@ -96,6 +95,18 @@ const Teachers = ({ schoolId }) => {
   };
 
   const getTeacherAvailableTimes = (teacher) => {
+    // Попытка загрузить данные из localStorage
+    const savedAvailableTimes = localStorage.getItem(`availableTimes_${teacher.data.teacherId}`);
+    if (savedAvailableTimes) {
+      try {
+        const parsedAvailableTimes = JSON.parse(savedAvailableTimes);
+        return parsedAvailableTimes.map(timeSlot => timeSlot.time);
+      } catch (e) {
+        console.error('Invalid JSON string for availableTimes');
+      }
+    }
+
+    // Если в localStorage данных нет, выполняем стандартный расчет
     let parsedSelectedTimes = [];
     if (typeof selectedTimes === 'string') {
       try {
@@ -114,19 +125,29 @@ const Teachers = ({ schoolId }) => {
             .flatMap(dateObj => dateObj.workTime
               .filter(workTimeSlot =>
                 parsedSelectedTimes.some(selectedDate =>
-                  new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime()
+                  new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
                 )
               )
             )
           )
       );
 
+    localStorage.setItem(`availableTimes_${teacher.data.teacherId}`, JSON.stringify(availableTimes));
+
     return availableTimes.map(timeSlot => timeSlot.time);
   };
 
+
   useEffect(() => {
+    const keys = Object.keys(localStorage);
+
+    keys.forEach(key => {
+      if (key.startsWith('availableTimes_')) {
+        localStorage.removeItem(key);
+      }
+    });
     fetchSchoolData();
-  }, [schoolId]);
+  }, []);
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -147,7 +168,7 @@ const Teachers = ({ schoolId }) => {
             </Link>
           </div>
           {schoolData.map((teacher, index) => (
-            <Link to={HandleFinish()} state={{ teacherDate: teacher.data.lang.filter(lang => lang.lang === language), level: level, lang_from_general_cal: lang, teacherId: teacher.data.teacherId }} className="teacher-link" key={index}>
+            <Link to={HandleFinish()} state={{ teacherDate: teacher.data.lang.filter(lang => lang.lang === language), level: level, lang_from_general_cal: lang, teacherId: teacher.data.teacherId, teacherName: teacher.data.teacherName }} className="teacher-link" key={index}>
               <div className="teacher-item">
                 <p>{teacher.data.teacherName}</p>
                 <div className="teacher-times">
@@ -157,12 +178,11 @@ const Teachers = ({ schoolId }) => {
 
                       {getTeacherAvailableTimes(teacher).map((time, idx) => (
 
-                        <li key={idx}>{new Date(time).toLocaleDaString()}</li>
+                        <li key={idx}>{time.toLocaleString().replace('T', ', ').replace('Z', '').replace('.000', '')}</li>
+
                       ))}
                     </ul>
-                  ) : (
-                    <p>No available times matching the selected dates</p>
-                  )}
+                  ) : ''}
                 </div>
               </div>
             </Link>

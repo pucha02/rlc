@@ -13,7 +13,7 @@ const Date = () => {
   const { allTeachers } = location.state || {};
   const { lang } = location.state || {};
   const { teacherId } = location.state || {};
-
+  const { teacherName } = location.state || {};
 
   const HandleFinish = () => {
     if (allTeachers) {
@@ -25,10 +25,19 @@ const Date = () => {
   };
 
   useEffect(() => {
+    const keys = Object.keys(localStorage);
+
+    keys.forEach(key => {
+      if (key.startsWith('availableTimes_')) {
+        localStorage.removeItem(key);
+      }
+    });
+
     if (teacherDate) {
       setFinal(teacherDate[0].lang)
     }
     else if (allTeachers) {
+      localStorage.removeItem('selectedDates');
       setFinal(lang[0])
     }
 
@@ -36,7 +45,7 @@ const Date = () => {
   return (
     <div>
       <h1>Виберіть дату</h1>
-      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId }}><button>Далі</button></Link>
+      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName }}><button>Далі</button></Link>
       <Calendar2 />
 
     </div>

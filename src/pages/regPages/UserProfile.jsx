@@ -33,7 +33,7 @@ const UserProfile = () => {
             const response = await axios.post('http://localhost:5000/logout');
             if (response.status === 200) {
                 setUser(null);
-                setOrders([]); 
+                setOrders([]);
                 localStorage.removeItem('token');
                 console.log('Logged out successfully');
             }
@@ -51,20 +51,41 @@ const UserProfile = () => {
                     <p>Email: {user.email}</p>
                     <p>Телефон: {user.phone}</p>
 
-                    <h3>Ваші замовлення</h3>
+                    <h3>Ваші записи</h3>
                     {orders.length > 0 ? (
                         <ul className="orders-list">
-                            {orders.map((order, index) => (
-                                <li key={index}>
-                                    <strong>Order ID:</strong> {order._id} <br />
-                                    <strong>Order Status:</strong> {order.order} <br />
-                                    <strong>Order times</strong> {order.time}
-                                </li>
-                            ))}
+                            {orders.map((order, index) => {
+                                let parsedTimes = [];
+
+                                try {
+                                    parsedTimes = JSON.parse(order.time);
+                                } catch (e) {
+                                    console.error('Invalid time format:', order.time);
+                                }
+
+                                return (
+                                    <li key={index}>
+                                        <strong>Мова:</strong> {order.lang} <br />
+                                        <strong>Курс:</strong> {order.levelName} <br />
+                                        <strong>Вчитель:</strong> {order.teacherName} <br />
+                                        <strong>Час:</strong>
+                                        {parsedTimes.length > 0 ? (
+                                            <ul>
+                                                {parsedTimes.map((time, idx) => (
+                                                    <li key={idx}>{time}</li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p>{order.time}</p>
+                                        )}
+                                    </li>
+                                );
+                            })}
                         </ul>
                     ) : (
                         <p>Замовлення відсутні.</p>
                     )}
+
                 </>
             ) : (
                 <p>Завантаження даних користувача...</p>

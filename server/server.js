@@ -8,8 +8,6 @@ const { v4: uuidv4 } = require('uuid');
 const { User, Order } = require('./models/Models');
 const SchoolModel = require('./models/SchoolModel')
 
-// Импортируем локаль
-
 
 const secret = 'jwt_secret';
 const app = express();
@@ -63,10 +61,9 @@ app.get('/api/schools', async (req, res) => {
 
 app.get('/api/bookings', async (req, res) => {
     try {
-        // Fetch all schools
+
         const schools = await SchoolModel.find({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
 
-        // Extract the ESL.teacher array from each school
         const allTeachers = schools.map(school => school.ESL.teacher).flat();
 
         res.json(allTeachers);
@@ -328,15 +325,12 @@ app.post('/register', async (req, res) => {
 
 
 app.post('/registerorder', async (req, res) => {
-    const { username, email, phone, order, time, lang, levelName, teacherId } = req.body;
+    const { username, email, phone, time, lang, levelName, teacherId, teacherName } = req.body;
 
     try {
         // Save the new order
-        const newOrder = new Order({ username, email, phone, order, time });
-        await newOrder.save();
-
         const parsedTimes = JSON.parse(time);
-
+        const bookedSlots = [];
         for (const t of parsedTimes) {
             // Parse the date from the provided time
             const parsedDate = parseUkrainianDate(t);
@@ -396,7 +390,17 @@ app.post('/registerorder', async (req, res) => {
 
                 // Decrement the slot count for the specific workTime
                 const workTimeSlot = dateObj.workTime.find(workTime => workTime.time.getTime() === new Date(parsedDate).getTime());
-                workTimeSlot.slots = (workTimeSlot.slots || 0) - 1;
+
+                // Если слот уже был забронирован пользователем
+                if (workTimeSlot.bookings.some(booking => booking.userName === username)) {
+                    bookedSlots.push(workTimeSlot.time); // Добавляем забронированный слот в массив
+                } else {
+                    const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time });
+                    await newOrder.save();
+                    workTimeSlot.bookings.push({ userName: username });
+                    workTimeSlot.slots = (workTimeSlot.slots || 0) - 1;
+                }
+
 
                 console.log(dateObj.workTime)
                 // Sort workTime by time
@@ -485,7 +489,12 @@ app.post('/registerorder', async (req, res) => {
                 console.log(`No booking found for time ${parsedDate}, lang ${lang}, and level ${levelName}`);
             }
         }
-
+        if (bookedSlots.length > 0) {
+            return res.status(400).json({
+                message: 'User has already booked these slots.',
+                bookedSlots // Возвращаем массив всех забронированных слотов
+            });
+        }
         res.status(201).json({ message: 'Order confirmed successfully' });
     } catch (error) {
         console.error('Error registering order:', error);
@@ -655,6 +664,148 @@ app.put('/addTeacherForSchool', async (req, res) => {
     }
 });
 
+app.put('/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
+    const { schoolId, langId } = req.params;
+    const { lang, levels } = req.body;
+
+    try {
+        const school = await SchoolModel.findOne({ id: schoolId });
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        const language = school.ESL.language.find(lang => lang.id === langId);
+        if (!language) return res.status(404).json({ message: 'Language not found' });
+
+        language.lang = lang;
+        language.level = levels;
+        await school.save();
+
+        res.json(school);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Маршрут для удаления языка
+app.delete('/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
+    const { schoolId, langId } = req.params;
+
+    try {
+        const school = await SchoolModel.findOne({ id: schoolId });
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        school.ESL.language = school.ESL.language.filter((lang) => lang.id !== langId);
+        await school.save();
+
+        res.json(school);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Маршрут для удаления уровня из языка
+app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, res) => {
+    const { schoolId, langId, levelId } = req.params;
+
+    try {
+        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        const language = school.ESL.language.find(lang => lang.id === langId);
+        if (!language) return res.status(404).json({ message: 'Language not found' });
+
+        language.level = language.level.filter((lvl) => lvl.id !== levelId);
+        await school.save();
+
+        res.json(school);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.delete('/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => {
+    const { schoolId, teacherId } = req.params;
+
+    try {
+        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        if (!school) return res.status(404).send('School not found');
+
+        school.ESL.teacher = school.ESL.teacher.filter(t => t.data.teacherId !== teacherId);
+        await school.save();
+
+        res.send('Teacher deleted successfully');
+    } catch (error) {
+        res.status(500).send('Server error');
+    }
+});
+
+// Обновить учителя
+app.put('/updateTeacher/:schoolId', async (req, res) => {
+    const { schoolId } = req.params;
+    const { id, teacherName, langs } = req.body;
+
+    try {
+        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        if (!school) return res.status(404).send('School not found');
+
+        const teacher = school.ESL.teacher.find(t => t.data.teacherId === id);
+        if (teacher) {
+            teacher.data.teacherName = teacherName;
+            teacher.data.lang = langs;
+        }
+
+        await school.save();
+
+        res.send('Teacher updated successfully');
+    } catch (error) {
+        res.status(500).send('Server error');
+    }
+});
+
+
+app.delete('/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
+    const { schoolId, teacherId, langId } = req.params;
+
+    try {
+        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        if (!school) return res.status(404).send('School not found');
+
+        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
+        if (!teacher) return res.status(404).send('Teacher not found');
+
+        teacher.lang = teacher.lang.filter(lng => lng.id !== langId);
+        await school.save();
+
+        res.status(200).json({ message: 'Language deleted', school });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
+// Delete specific level by level ID
+app.delete('/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req, res) => {
+    const { schoolId, teacherId, langId, levelId } = req.params;
+
+    try {
+        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        if (!school) return res.status(404).send('School not found');
+
+        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
+        if (!teacher) return res.status(404).send('Teacher not found');
+
+        const lang = teacher.lang.find(lng => lng.id === langId);
+        if (!lang) return res.status(404).send('Language not found');
+
+        lang.level = lang.level.filter(lvl => lvl.id !== levelId);
+        await school.save();
+
+        res.status(200).json({ message: 'Level deleted', school });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

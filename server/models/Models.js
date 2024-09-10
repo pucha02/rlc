@@ -18,7 +18,7 @@ const itemProductSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-    username: { type: String },
+    username: { type: String, unique: true },
     email: { type: String, unique: true }, // Ensure uniqueness for user emails
     phone: { type: String },
     password: { type: String },
@@ -37,7 +37,9 @@ const orderSchema = new mongoose.Schema({
     username: { type: String },
     email: { type: String }, // Removed 'unique: true'
     phone: { type: String }, // Removed 'unique: true'
-    order: { type: String, default: 'Pending' },
+    teacherName: { type: String },
+    lang: { type: String }, // Removed 'unique: true'
+    levelName: { type: String }, // Removed 'unique: true'
     time: { type: String, default: 'Pending' },
 });
 
@@ -51,4 +53,4 @@ module.exports = {
     User,
     ItemProduct,
     Order
-  };
+};
