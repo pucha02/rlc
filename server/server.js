@@ -1,4 +1,7 @@
 const parseUkrainianDate = require('./smallFn/convertDate')
+const processBooking = require('./smallFn/processBookingForRegisterOrder')
+const putOrAddTeacherDates = require('./smallFn/putOrAddTeacherDates')
+const { findSchoolById, findTeacherById, findLanguageById, removeById, addToSchoolArray } = require('./smallFn/findFunction')
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { User, Order } = require('./models/Models');
 const SchoolModel = require('./models/SchoolModel')
-
 
 const secret = 'jwt_secret';
 const app = express();
@@ -23,26 +25,6 @@ mongoose.connect('mongodb+srv://seksikoleg5:se4HivNRYKdydnzc@cluster0.pdc2rrh.mo
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB');
 });
-
-const bookingSchema = new mongoose.Schema({
-    d: Date,
-    allNr: Number,
-    workTime: [
-        {
-            time: Date,
-            nr: Number
-        }
-    ],
-    nonWorkTime: [
-        {
-            start: Date,
-            end: Date
-        }
-    ]
-});
-
-
-const Booking = mongoose.model('Booking', bookingSchema);
 
 
 app.get('/api/schools', async (req, res) => {
@@ -73,7 +55,6 @@ app.get('/api/bookings', async (req, res) => {
 });
 
 
-
 app.get('/api/bookings/:id', async (req, res) => {
     try {
         const booking = await SchoolModel.findById(req.params.id);
@@ -88,89 +69,7 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dateses', async (req, res) =
     try {
         const { schoolId, teacherId } = req.params;
 
-        // Find the school by ID and the specific teacher within that school
-        const school = await SchoolModel.findOne({ "id": schoolId, "ESL.teacher.data.teacherId": teacherId });
-        if (!school) return res.status(404).json({ message: 'School or teacher not found' });
-
-        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
-
-        // Find the specific language and level
-        const lang = teacher.data.lang.find(l => l.lang === req.body.lang);
-        if (!lang) return res.status(404).json({ message: 'Language not found' });
-
-        const level = lang.level.find(lv => lv.levelName === req.body.levelName);
-        if (!level) return res.status(404).json({ message: 'Level not found' });
-
-        const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
-        if (!lessonTypes) return res.status(404).json({ message: 'Level not found' });
-        // Process and adjust work times
-        const workTimes = req.body.workTime.map(wt => {
-            const adjustedTime = new Date(new Date(wt.time).getTime()); // Adjust for your timezone
-            return { ...wt, time: adjustedTime };
-        }).sort((a, b) => new Date(a.time) - new Date(b.time));
-
-        const nonWorkTimes = [];
-
-        // Non-working time from the start of the day to the first work time
-        const startOfDay = new Date(new Date(workTimes[0].time).setUTCHours(0, 0, 0, 0));
-        const firstWorkTime = new Date(workTimes[0].time);
-
-        if (startOfDay < firstWorkTime) {
-            nonWorkTimes.push({
-                start: startOfDay,
-                end: new Date(firstWorkTime.getTime() - 60 * 1000) // 1 minute before work starts
-            });
-        }
-
-        // Process work times and add non-working intervals where nr = 0
-        for (let i = 0; i < workTimes.length; i++) {
-            const currentStart = new Date(workTimes[i].time);
-
-            if (workTimes[i].slots === 0) {
-                const nextStart = (i < workTimes.length - 1) ? new Date(workTimes[i + 1].time) : new Date(currentStart.setUTCHours(23, 59, 0, 0));
-                nonWorkTimes.push({
-                    start: currentStart,
-                    end: new Date(nextStart.getTime() - 60 * 1000)
-                });
-            } else {
-                if (i > 0 && workTimes[i - 1].slots !== 0) {
-                    const previousEnd = new Date(workTimes[i - 1].time);
-                    if (previousEnd < currentStart) {
-                        nonWorkTimes.push({
-                            start: new Date(previousEnd.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),  // 1 minute after 1 hour
-                            end: new Date(currentStart.getTime() - 60 * 1000)  // 1 minute before the current work interval
-                        });
-                    }
-                }
-            }
-        }
-
-        // Non-working time from the end of the last work time to the end of the day
-        const lastWorkTime = new Date(workTimes[workTimes.length - 1].time);
-        const endOfDay = new Date(lastWorkTime);
-        endOfDay.setUTCHours(23, 59, 0, 0);
-
-        if (lastWorkTime < endOfDay) {
-            nonWorkTimes.push({
-                start: new Date(lastWorkTime.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                end: endOfDay
-            });
-        }
-
-        // Create a new date entry
-        const newDate = {
-            d: req.body.d,
-            allSlots: req.body.allSlots,
-            workTime: workTimes,
-            nonWorkTime: nonWorkTimes
-        };
-
-        // Add the new date to the level's dates array
-        lessonTypes.date.push(newDate);
-
-        // Save the updated school document
-        await school.save();
-        res.status(200).json({ message: 'Schedule updated successfully' });
+        await putOrAddTeacherDates(SchoolModel, schoolId, teacherId, req, res)
 
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -181,130 +80,13 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dateses', async (req, res) =
 app.put('/api/schools/:schoolId/teachers/:teacherId/dates', async (req, res) => {
     try {
         const { schoolId, teacherId } = req.params;
-
-        // Find the school and teacher
-        const school = await SchoolModel.findOne({ "id": schoolId, "ESL.teacher.data.teacherId": teacherId });
-        if (!school) return res.status(404).json({ message: 'School or teacher not found' });
-
-
-        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
-
-        const lang = teacher.data.lang.find(l => l.lang === req.body.lang);
-        if (!lang) return res.status(404).json({ message: 'Language not found' });
-
-        const level = lang.level.find(lv => lv.levelName === req.body.levelName.levelName);
-        if (!level) return res.status(404).json({ message: 'Level not found' });
-
-        const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
-        if (!lessonTypes) return res.status(404).json({ message: 'Level not found' });
-
-
-        const workTimes = req.body.workTime.map(wt => {
-            const adjustedTime = new Date(new Date(wt.time).getTime()); // Adjust for your timezone
-            return { ...wt, time: adjustedTime };
-        }).sort((a, b) => new Date(a.time) - new Date(b.time));
-
-        const nonWorkTimes = [];
-
-        // Non-working time from the start of the day to the first work time
-        const startOfDay = new Date(new Date(workTimes[0].time).setUTCHours(0, 0, 0, 0));
-        const firstWorkTime = new Date(workTimes[0].time);
-
-        if (startOfDay < firstWorkTime) {
-            nonWorkTimes.push({
-                start: startOfDay,
-                end: new Date(firstWorkTime.getTime() - 60 * 1000) // 1 minute before work starts
-            });
-        }
-
-        // Process work times and add non-working intervals where nr = 0
-        for (let i = 0; i < workTimes.length; i++) {
-            const currentStart = new Date(workTimes[i].time);
-            if (workTimes[i].slots === 0) {
-                const previousEnd = i > 0 ? new Date(workTimes[i - 1].time) : startOfDay;
-                const nextStart = i < workTimes.length - 1 ? new Date(workTimes[i + 1].time) : new Date(currentStart.setUTCHours(23, 59, 0, 0));
-
-                if (previousEnd < currentStart) {
-                    nonWorkTimes.push({
-                        start: new Date(previousEnd.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                        end: new Date(currentStart.getTime() - 60 * 1000),
-                    });
-                }
-
-                if (currentStart < nextStart) {
-                    nonWorkTimes.push({
-                        start: currentStart,
-                        end: new Date(nextStart.getTime() - 60 * 1000),
-                    });
-                }
-            }
-        }
-
-        // Additional pass to add remaining non-working intervals
-        for (let i = 0; i < workTimes.length; i++) {
-            const currentStart = new Date(workTimes[i].time);
-            if (workTimes[i].slots === 0) {
-                const nextStart = i < workTimes.length - 1 ? new Date(workTimes[i + 1].time) : new Date(currentStart.setUTCHours(23, 59, 0, 0));
-                nonWorkTimes.push({
-                    start: currentStart,
-                    end: new Date(nextStart.getTime() - 60 * 1000),
-                });
-            } else {
-                if (i > 0 && workTimes[i - 1].slots !== 0) {
-                    const previousEnd = new Date(workTimes[i - 1].time);
-                    if (previousEnd < currentStart) {
-                        nonWorkTimes.push({
-                            start: new Date(previousEnd.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                            end: new Date(currentStart.getTime() - 60 * 1000),
-                        });
-                    }
-                }
-            }
-        }
-
-
-        const lastWorkTime = new Date(workTimes[workTimes.length - 1].time);
-        const endOfDay = new Date(lastWorkTime);
-        endOfDay.setUTCHours(23, 59, 0, 0);
-
-        if (lastWorkTime < endOfDay) {
-            nonWorkTimes.push({
-                start: new Date(lastWorkTime.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                end: endOfDay
-            });
-        }
-
-        // Create a new date entry
-        const newDate = {
-            d: new Date(req.body.d), // Convert the string date to a Date object
-            allSlots: req.body.allSlots,
-            workTime: workTimes,
-            nonWorkTime: nonWorkTimes
-        };
-        console.log(newDate)
-        // Remove any existing date entry with the same date
-        lessonTypes.date = lessonTypes.date.filter(date => date.d.getTime() !== newDate.d.getTime());
-        // Add the new date to the teacher's dates array
-        lessonTypes.date.push(newDate);
-
-        await school.save();
-        res.status(200).json({ message: 'Schedule updated successfully' });
+        await putOrAddTeacherDates(SchoolModel, schoolId, teacherId, req, res)
 
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 });
 
-
-app.delete('/api/bookings/:id', async (req, res) => {
-    try {
-        const booking = await Booking.findByIdAndDelete(req.params.id);
-        if (!booking) return res.status(404).json({ message: 'Booking not found' });
-        res.json({ message: 'Booking deleted' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
 
 app.post('/register', async (req, res) => {
     const { username, email, phone, password } = req.body;
@@ -332,179 +114,46 @@ app.post('/register', async (req, res) => {
 
 
 app.post('/registerorder', async (req, res) => {
-    const { username, email, phone, time, lang, levelName, teacherId, teacherName, lessonTypes } = req.body;
-
+    const { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time } = req.body;
+    const selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
     try {
-        // Save the new order
-        const parsedTimes = JSON.parse(time);
         const bookedSlots = [];
-        for (const t of parsedTimes) {
-            // Parse the date from the provided time
-            const parsedDate = parseUkrainianDate(t);
 
-            // Find the relevant school and teacher with workTime matching the parsedDate, lang, and levelName
-            const school = await SchoolModel.findOne({
-                "ESL.teacher.data.teacherId": teacherId,
-                "ESL.teacher.data.lang.lang": lang,
-                "ESL.teacher.data.lang.level.levelName": levelName,
-                "ESL.teacher.data.lang.level.lessonTypes.typeName": lessonTypes,
-                "ESL.teacher.data.lang.level.lessonTypes.date.workTime.time": parsedDate,
-            });
+        if (selectedSlots.length > 0) {
+            console.log(selectedSlots)
+            let lang, levelName, teacherId, lessonTypes, time;
 
-            if (school) {
-                const teacher = school.ESL.teacher.find(teacher =>
-                    teacher.data.teacherId === teacherId &&
-                    teacher.data.lang.some(langItem =>
-                        langItem.lang === lang &&
-                        langItem.level.some(levelItem =>
-                            levelItem.levelName === levelName &&
-                            levelItem.lessonTypes.some(typeItem =>
-                                typeItem.typeName === lessonTypes &&  // Check for typeName
-                                typeItem.date.some(date =>
-                                    date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
-                                )
-                            )
-                        )
-                    )
-                );
+            // Обрабатываем каждый слот из selectedSlots
+            for (const slot of selectedSlots) {
+                [teacherName, teacherId, lang, levelName, lessonTypes, time] = slot.split(', ');
+                const parsedDate = new Date(time);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots);
 
-                if (!teacher) {
-                    console.log(`No teacher ${teacherId} found with work time ${parsedDate}, lang ${lang}, level ${levelName}, and type ${lessonTypes}`);
-                    continue;
-                }
-
-                const dateObj = teacher.data.lang
-                    .find(langItem => langItem.lang === lang)
-                    .level
-                    .find(levelItem => levelItem.levelName === levelName)
-                    .lessonTypes
-                    .find(typeItem => typeItem.typeName === lessonTypes)  // Find the correct lesson type
-                    .date
-                    .find(date =>
-                        date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
-                    );
-
-                if (!dateObj) {
-                    console.log(`No date object found for time ${parsedDate}`);
-                    continue;
-                }
-
-                // Decrement the slot count for the specific workTime
-                const workTimeSlot = dateObj.workTime.find(workTime => workTime.time.getTime() === new Date(parsedDate).getTime());
-
-                // Если слот уже был забронирован пользователем
-                if (workTimeSlot.bookings.some(booking => booking.userName === username)) {
-                    bookedSlots.push(workTimeSlot.time); // Добавляем забронированный слот в массив
-                } else {
-
-                    workTimeSlot.bookings.push({ userName: username });
-                    workTimeSlot.slots = (workTimeSlot.slots || 0) - 1;
-                }
-
-
-                console.log(dateObj.workTime)
-                // Sort workTime by time
-                dateObj.workTime.sort((a, b) => new Date(a.time) - new Date(b.time));
-
-                // Initialize an array to store non-working intervals
-                const nonWorkTimes = [];
-                const workTimes = dateObj.workTime;
-
-                // Determine the start of the day and the first work interval
-                const startOfDay = new Date(new Date(workTimes[0].time).setUTCHours(0, 0, 0, 0));
-                const firstWorkTime = new Date(workTimes[0].time);
-
-                // Add a non-working interval if the start of the day is before the first work interval
-                if (startOfDay < firstWorkTime) {
-                    nonWorkTimes.push({
-                        start: startOfDay,
-                        end: new Date(firstWorkTime.getTime() - 60 * 1000),
-                    });
-                }
-
-                // Iterate through work intervals to find non-working intervals
-                for (let i = 0; i < workTimes.length; i++) {
-                    const currentStart = new Date(workTimes[i].time);
-                    if (workTimes[i].slots === 0) {
-                        const previousEnd = i > 0 ? new Date(workTimes[i - 1].time) : startOfDay;
-                        const nextStart = i < workTimes.length - 1 ? new Date(workTimes[i + 1].time) : new Date(currentStart.setUTCHours(23, 59, 0, 0));
-
-                        if (previousEnd < currentStart) {
-                            nonWorkTimes.push({
-                                start: new Date(previousEnd.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                                end: new Date(currentStart.getTime() - 60 * 1000),
-                            });
-                        }
-
-                        if (currentStart < nextStart) {
-                            nonWorkTimes.push({
-                                start: currentStart,
-                                end: new Date(nextStart.getTime() - 60 * 1000),
-                            });
-                        }
-                    }
-                }
-
-                // Additional pass to add remaining non-working intervals
-                for (let i = 0; i < workTimes.length; i++) {
-                    const currentStart = new Date(workTimes[i].time);
-                    if (workTimes[i].slots === 0) {
-                        const nextStart = i < workTimes.length - 1 ? new Date(workTimes[i + 1].time) : new Date(currentStart.setUTCHours(23, 59, 0, 0));
-                        nonWorkTimes.push({
-                            start: currentStart,
-                            end: new Date(nextStart.getTime() - 60 * 1000),
-                        });
-                    } else {
-                        if (i > 0 && workTimes[i - 1].slots !== 0) {
-                            const previousEnd = new Date(workTimes[i - 1].time);
-                            if (previousEnd < currentStart) {
-                                nonWorkTimes.push({
-                                    start: new Date(previousEnd.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                                    end: new Date(currentStart.getTime() - 60 * 1000),
-                                });
-                            }
-                        }
-                    }
-                }
-
-                const lastWorkTime = new Date(workTimes[workTimes.length - 1].time);
-                const endOfDay = new Date(lastWorkTime);
-                endOfDay.setUTCHours(23, 59, 0, 0);
-
-                if (lastWorkTime < endOfDay) {
-                    nonWorkTimes.push({
-                        start: new Date(lastWorkTime.getTime() + 60 * 60 * 1000 - 60 * 1000 * 31),
-                        end: endOfDay,
-                    });
-                }
-
-                // Save non-working intervals to the date object
-                dateObj.nonWorkTime = nonWorkTimes;
-
-                // Save the updated school data
-                await school.save();
-                console.log(`Updated booking for time ${parsedDate}, lang ${lang}, and level ${levelName}: Decremented slots by 1 and recalculated all non-work times`);
-
-            } else {
-                console.log(`No booking found for time ${parsedDate}, lang ${lang}, and level ${levelName}`);
             }
+        } else if (selectedSlots.length <= 0) {
+            const parsedTimes = JSON.parse(time);
+            for (const t of parsedTimes) {
+                const parsedDate = parseUkrainianDate(t);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots);
+            }
+
         }
+
         if (bookedSlots.length > 0) {
             return res.status(400).json({
-                message: 'User has already booked these slots.',
-                bookedSlots // Возвращаем массив всех забронированных слотов
+                message: 'Некоторые слоты уже забронированы пользователем.',
+                bookedSlots
             });
-        } else if(bookedSlots.length == 0) {
-            const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time });
+        } else if (bookedSlots.length == 0) {
+            const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: selectedSlots.join('; ') || time });
             await newOrder.save();
+            res.status(201).json({ message: 'Бронирование подтверждено' });
         }
-        res.status(201).json({ message: 'Order confirmed successfully' });
     } catch (error) {
-        console.error('Error registering order:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Ошибка при регистрации заказа:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
-
 
 
 app.post('/login', async (req, res) => {
@@ -562,9 +211,6 @@ app.get('/me', auth, async (req, res) => {
 
         const orders = await Order.find({ email: user.email });
 
-        console.log('User:', user);
-        console.log('Orders:', orders);
-
         res.json({ user, orders });
     } catch (error) {
         console.error('Error fetching user data or orders:', error);
@@ -610,9 +256,7 @@ app.delete('/schools/:id', async (req, res) => {
 
 app.put('/schools/:id/languages', async (req, res) => {
     try {
-
-        const school = await SchoolModel.findById(req.params.id);
-        console.log(school)
+        const school = await findSchoolById(req.params.id, SchoolModel);
         school.ESL.language.push(req.body);
         await school.save();
         res.send(school);
@@ -621,22 +265,14 @@ app.put('/schools/:id/languages', async (req, res) => {
     }
 });
 
+// Добавление языка для школы
 app.put('/addLanguageForSchool', async (req, res) => {
     const { id, lang, levels } = req.body;
 
-    console.log(levels)
+    const newLanguage = { id: uuidv4(), lang: lang, level: levels };
 
     try {
-        const school = await SchoolModel.findOneAndUpdate(
-            { id: id },
-            { $push: { 'ESL.language': { id: uuidv4(), lang: lang, level: levels } } },
-            { new: true }
-        );
-
-        if (!school) {
-            return res.status(404).send('School not found');
-        }
-
+        const school = await addToSchoolArray(SchoolModel, id, 'ESL.language', newLanguage);
         res.send(`Language updated for school with id ${id}`);
     } catch (error) {
         console.error('Ошибка обновления:', error);
@@ -644,35 +280,28 @@ app.put('/addLanguageForSchool', async (req, res) => {
     }
 });
 
+// Добавление учителя для школы
 app.put('/addTeacherForSchool', async (req, res) => {
     const { id, teacherName, langs } = req.body;
 
-    console.log(teacherName)
+    const newTeacher = { data: { teacherName: teacherName, teacherId: uuidv4(), lang: langs } };
 
     try {
-        const school = await SchoolModel.findOneAndUpdate(
-            { id: id },
-            { $push: { 'ESL.teacher': { data: { teacherName: teacherName, teacherId: uuidv4(), lang: langs } } } },
-            { new: true }
-        );
-
-        if (!school) {
-            return res.status(404).send('School not found');
-        }
-
-        res.send(`Language updated for school with id ${id}`);
+        const school = await addToSchoolArray(SchoolModel, id, 'ESL.teacher', newTeacher);
+        res.send(`Teacher added to school with id ${id}`);
     } catch (error) {
         console.error('Ошибка обновления:', error);
-        res.status(500).send('Error updating language');
+        res.status(500).send('Error adding teacher');
     }
 });
+
 
 app.put('/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
     const { schoolId, langId } = req.params;
     const { lang, levels } = req.body;
 
     try {
-        const school = await SchoolModel.findOne({ id: schoolId });
+        const school = await findSchoolById(schoolId, SchoolModel);
         if (!school) return res.status(404).json({ message: 'School not found' });
 
         const language = school.ESL.language.find(lang => lang.id === langId);
@@ -693,7 +322,7 @@ app.delete('/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
     const { schoolId, langId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: schoolId });
+        const school = await findSchoolById(schoolId, SchoolModel);
         if (!school) return res.status(404).json({ message: 'School not found' });
 
         school.ESL.language = school.ESL.language.filter((lang) => lang.id !== langId);
@@ -710,8 +339,7 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
     const { schoolId, langId, levelId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'school123' });
-        
+        const school = await findSchoolById(schoolId, SchoolModel);
         if (!school) return res.status(404).json({ message: 'School not found' });
 
         const language = school.ESL.language.find(lang => lang.id === langId);
@@ -729,7 +357,7 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
 
 app.delete('/deleteClassTypeFromLevel', async (req, res) => {
     const { languageId, levelId, classTypeId } = req.body;
-    
+
     try {
         // Find the school using the schoolId from the request parameters
         const school = await SchoolModel.findOne({ id: 'school123' });
@@ -737,7 +365,7 @@ app.delete('/deleteClassTypeFromLevel', async (req, res) => {
         if (!school) {
             return res.status(404).json({ error: 'School not found' });
         }
-        
+
         let languageFound = false;
         // Iterate through the languages to find the correct level
         school.ESL.language.forEach(lang => {
@@ -768,28 +396,28 @@ app.delete('/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => 
     const { schoolId, teacherId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'school123' });
-        if (!school) return res.status(404).send('School not found');
-
+        const school = await findSchoolById(schoolId, SchoolModel);
         school.ESL.teacher = school.ESL.teacher.filter(t => t.data.teacherId !== teacherId);
         await school.save();
 
-        res.send('Teacher deleted successfully');
-    } catch (error) {
-        res.status(500).send('Server error');
+        res.status(200).send('Teacher deleted successfully');
+    } catch (err) {
+        console.error(err.message);
+        res.status(404).send(err.message);
     }
 });
 
 // Обновить учителя
 app.put('/updateTeacher/:schoolId', async (req, res) => {
     const { schoolId } = req.params;
-    const { id, teacherName, langs } = req.body;
+    const { id, teacherName, langs, teacherId } = req.body;
 
     try {
         const school = await SchoolModel.findOne({ id: 'school123' });
         if (!school) return res.status(404).send('School not found');
 
-        const teacher = school.ESL.teacher.find(t => t.data.teacherId === id);
+        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
+        console.log(teacher)
         if (teacher) {
             teacher.data.teacherName = teacherName;
             teacher.data.lang = langs;
@@ -808,43 +436,37 @@ app.delete('/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
     const { schoolId, teacherId, langId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'school123' });
-        if (!school) return res.status(404).send('School not found');
+        const school = await findSchoolById(schoolId, SchoolModel);
+        const teacher = findTeacherById(school, teacherId);
 
-        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
-        if (!teacher) return res.status(404).send('Teacher not found');
-
-        teacher.lang = teacher.lang.filter(lng => lng.id !== langId);
+        // Удаление языка
+        teacher.lang = removeById(teacher.lang, langId);
         await school.save();
 
         res.status(200).json({ message: 'Language deleted', school });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+        console.error(err.message);
+        res.status(404).send(err.message);
     }
 });
 
-// Delete specific level by level ID
+// Удаление уровня
 app.delete('/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req, res) => {
     const { schoolId, teacherId, langId, levelId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'school123' });
-        if (!school) return res.status(404).send('School not found');
+        const school = await findSchoolById(schoolId, SchoolModel);
+        const teacher = findTeacherById(school, teacherId);
+        const lang = findLanguageById(teacher, langId);
 
-        const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
-        if (!teacher) return res.status(404).send('Teacher not found');
-
-        const lang = teacher.lang.find(lng => lng.id === langId);
-        if (!lang) return res.status(404).send('Language not found');
-
-        lang.level = lang.level.filter(lvl => lvl.id !== levelId);
+        // Удаление уровня
+        lang.level = removeById(lang.level, levelId);
         await school.save();
 
         res.status(200).json({ message: 'Level deleted', school });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+        console.error(err.message);
+        res.status(404).send(err.message);
     }
 });
 
