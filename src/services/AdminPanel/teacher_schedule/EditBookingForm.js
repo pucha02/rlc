@@ -12,6 +12,7 @@ function EditBookingForm() {
   const { lang } = location.state || {};
   const { level } = location.state || {};
   const { teacherId } = location.state || {};
+  const { lessonTypes } = location.state || {};
 
   useEffect(() => {
     if (id) {
@@ -64,11 +65,12 @@ function EditBookingForm() {
     const requestBody = {
       ...booking,
       lang: lang,
-      levelName: level
+      levelName: level,
+      lessonTypes: lessonTypes
     };
     console.log('Submitting booking:', requestBody);
     try {
-      await axios.put(`http://localhost:5000/api/schools/bbd935fb-a9bd-4412-810f-8ecd7189d5e7/teachers/${teacherId}/dates`, requestBody);
+      await axios.put(`http://localhost:5000/api/schools/school123/teachers/${teacherId}/dates`, requestBody);
       console.log('Booking updated successfully');
       navigate('/admin');
     } catch (error) {

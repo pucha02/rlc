@@ -7,7 +7,7 @@ import './SchoolDetail.css';
 const SchoolDetail = ({ schoolId }) => {
     const [school, setSchool] = useState(null);
     const [editingLang, setEditingLang] = useState(null);
-    const [editingTeacher, setEditingTeacher] = useState(null); // Для редактирования учителя
+    const [editingTeacher, setEditingTeacher] = useState(null);
 
     const fetchSchool = async () => {
         const res = await axios.get('http://localhost:5000/api/schools');
@@ -21,7 +21,7 @@ const SchoolDetail = ({ schoolId }) => {
 
     const deleteLanguage = async (languageId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLanguageFromSchool/bbd935fb-a9bd-4412-810f-8ecd7189d5e7/${languageId}`);
+            await axios.delete(`http://localhost:5000/deleteLanguageFromSchool/school123/${languageId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting language:', error);
@@ -30,16 +30,32 @@ const SchoolDetail = ({ schoolId }) => {
 
     const deleteLevel = async (languageId, levelId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLevelFromLanguage/bbd935fb-a9bd-4412-810f-8ecd7189d5e7/${languageId}/${levelId}`);
+            await axios.delete(`http://localhost:5000/deleteLevelFromLanguage/school123/${languageId}/${levelId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting level:', error);
         }
     };
 
+    const deleteClassType = async (languageId, levelId, classTypeId) => {
+        try {
+            console.log(languageId, levelId, classTypeId); // Check if these values are correct
+            
+            await axios.delete(`http://localhost:5000/deleteClassTypeFromLevel`, {
+                data: { languageId, levelId, classTypeId } // Sending data in the body
+            });
+    
+            fetchSchool(); // Fetch the updated school info after deletion
+        } catch (error) {
+            console.error('Error deleting class type:', error);
+        }
+    };
+    
+
+
     const deleteTeacher = async (teacherId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteTeacherFromSchool/bbd935fb-a9bd-4412-810f-8ecd7189d5e7/${teacherId}`);
+            await axios.delete(`http://localhost:5000/deleteTeacherFromSchool/school123/${teacherId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting teacher:', error);
@@ -63,10 +79,19 @@ const SchoolDetail = ({ schoolId }) => {
                         <button onClick={() => deleteLanguage(lang.id)} className="delete-button">Delete</button>
                         <button onClick={() => setEditingLang(lang)} className="edit-button">Edit</button>
                         <ul>
-                            {lang.level.map(l => (
-                                <li key={l.id} className="level-item">
-                                    {l.levelName}
-                                    <button onClick={() => deleteLevel(lang.id, l.id)} className="delete-button">Delete Level</button>
+                            {lang.level.map(lvl => (
+                                <li key={lvl.id} className="level-item">
+                                    {lvl.levelName}
+                                    <button onClick={() => deleteLevel(lang.id, lvl.id)} className="delete-button">Delete Level</button>
+                                    <ul>
+                                        {lvl.lessonTypes.map(ct => (
+                                            <li key={ct.id} className="class-type-item">
+                                                {ct.typeName}
+                                                {console.log(ct.id)}
+                                                <button onClick={() => deleteClassType(lang.id, lvl.id, ct.id)} className="delete-button">Delete Class Type</button>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </li>
                             ))}
                         </ul>
@@ -94,8 +119,8 @@ const SchoolDetail = ({ schoolId }) => {
             <AddTeacherForm
                 schoolId={schoolId}
                 fetchSchool={fetchSchool}
-                editingTeacher={editingTeacher} // Передаем редактируемого учителя
-                setEditingTeacher={setEditingTeacher} // Для сброса редактируемого учителя
+                editingTeacher={editingTeacher}
+                setEditingTeacher={setEditingTeacher}
             />
         </div>
     );

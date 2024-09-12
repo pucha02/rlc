@@ -15,7 +15,7 @@ function Calendar2() {
   const [dates, setDates] = useState([]);
   const [multiple, setMultiple] = useState([]);
   const min = '2024-09-01T00:00';
-  const max = '2024-09-11T00:00';
+  const max = '2024-09-12T00:00';
   const [datetimeLabels, setDatetimeLabels] = useState([]);
   const [datetimeInvalid, setDatetimeInvalid] = useState([]);
   const [date, setDate] = useState([]);
@@ -24,7 +24,8 @@ function Calendar2() {
   const { teacherDate } = location.state || {};
   const { level } = location.state || {};
   const { allTeachers } = location.state || {};
-
+  const { lessonTypes } = location.state || {};
+  console.log(lessonTypes)
   const handlePageLoadingDatetime = useCallback(() => {
     const invalid = [];
     const labels = [];
@@ -52,7 +53,8 @@ function Calendar2() {
     const fetchData = async () => {
       try {
         if (teacherDate) {
-          const teacherDates = teacherDate[0].level.filter(lv => lv.levelName === level);
+          const teacherDates = teacherDate[0].level.filter(lv => lv.levelName === level)[0].lessonTypes.filter(ls => ls.typeName == lessonTypes);
+          
           teacherDates[0].date.forEach((booking) => {
             booking.allSlots = booking.workTime.reduce((total, item) => total + item.slots, 0);
           });

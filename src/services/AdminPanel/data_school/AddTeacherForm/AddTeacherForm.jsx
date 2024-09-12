@@ -8,7 +8,8 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
     const [langs, setLangs] = useState([]);
     const [level, setLevel] = useState('');
     const [selectedLangId, setSelectedLangId] = useState('');
-
+    const [classType, setClassType] = useState('');
+    const [selectedLevelId, setSelectedLevelId] = useState('');
 
     useEffect(() => {
         if (editingTeacher) {
@@ -25,6 +26,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
         const newLevel = {
             id: Date.now().toString(),
             levelName: level,
+            lessonTypes: [],
             date: [],
         };
 
@@ -47,7 +49,31 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
         setLang('');
     };
 
-    // Edit language
+    const addClassType = () => {
+        if (!selectedLevelId) {
+            alert('Выберите уровень для добавления типа занятий');
+            return;
+        }
+        const newClassType = {
+            id: Date.now().toString(),
+            typeName: classType,
+        };
+
+        setLangs(langs.map(lng =>
+            lng.id === selectedLangId
+                ? {
+                    ...lng,
+                    level: lng.level.map(lvl =>
+                        lvl.id === selectedLevelId
+                            ? { ...lvl, lessonTypes: [...lvl.lessonTypes, newClassType] }
+                            : lvl
+                    ),
+                }
+                : lng
+        ));
+        setClassType('');
+    };
+
     const handleEditLang = (langId, newLangName) => {
         setLangs(langs.map(lng =>
             lng.id === langId
@@ -56,7 +82,6 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
         ));
     };
 
-    // Edit level
     const handleEditLevel = (langId, levelId, newLevelName) => {
         setLangs(langs.map(lng =>
             lng.id === langId
@@ -70,12 +95,10 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
         ));
     };
 
-    // Delete language
     const handleDeleteLang = (langId) => {
         setLangs(langs.filter(lng => lng.id !== langId));
     };
 
-    // Delete level
     const handleDeleteLevel = (langId, levelId) => {
         setLangs(langs.map(lng =>
             lng.id === langId
@@ -84,14 +107,29 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
         ));
     };
 
+    const handleDeleteClassType = (langId, levelId, classTypeId) => {
+        setLangs(langs.map(lng =>
+            lng.id === langId
+                ? {
+                    ...lng,
+                    level: lng.level.map(lvl =>
+                        lvl.id === levelId
+                            ? { ...lvl, lessonTypes: lvl.lessonTypes.filter(cls => cls.id !== classTypeId) }
+                            : lvl
+                    )
+                }
+                : lng
+        ));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const url = editingTeacher
-            ? `http://localhost:5000/updateTeacher/bbd935fb-a9bd-4412-810f-8ecd7189d5e7`
+            ? `http://localhost:5000/updateTeacher/school123`
             : `http://localhost:5000/addTeacherForSchool`;
         try {
             await axios.put(url, {
-                id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7',
+                id: 'school123',
                 teacherName,
                 langs,
             }, {
@@ -123,14 +161,14 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     type="text"
                     value={lang}
                     onChange={(e) => setLang(e.target.value)}
-                    placeholder="Add Lang"
+                    placeholder="Add Language"
                 />
                 <button type="button" onClick={addLang} className="add-lang-btn">
-                    Add Lang
+                    Add Language
                 </button>
             </div>
             <div className="langs-list">
-                <h3>Added Langs:</h3>
+                <h3>Added Languages:</h3>
                 <ul>
                     {langs.map((lng) => (
                         <li key={lng.id} className="lang-item">
@@ -140,7 +178,9 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                                 onChange={(e) => handleEditLang(lng.id, e.target.value)}
                                 placeholder="Edit Language"
                             />
-                            <button onClick={() => handleDeleteLang(lng.id)}>Delete Language</button>
+                            <button className="delete-btn" onClick={() => handleDeleteLang(lng.id)}>
+                                Delete
+                            </button>
                             <ul>
                                 {lng.level.length > 0 ? (
                                     lng.level.map((lvl) => (
@@ -151,7 +191,48 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                                                 onChange={(e) => handleEditLevel(lng.id, lvl.id, e.target.value)}
                                                 placeholder="Edit Level"
                                             />
-                                            <button onClick={() => handleDeleteLevel(lng.id, lvl.id)}>Delete Level</button>
+                                            <button className="delete-btn" onClick={() => handleDeleteLevel(lng.id, lvl.id)}>
+                                                Delete
+                                            </button>
+                                            
+                                            {/* Class types for each level */}
+                                            <ul>
+                                                {lvl.lessonTypes.length > 0 ? (
+                                                    lvl.lessonTypes.map((cls) => (
+                                                        <li key={cls.id} className="class-type-item">
+                                                            <input
+                                                                type="text"
+                                                                value={cls.typeName}
+                                                                onChange={(e) => {
+                                                                    const updatedClassTypes = lvl.lessonTypes.map(ct =>
+                                                                        ct.id === cls.id
+                                                                            ? { ...ct, lessonTypes: e.target.value }
+                                                                            : ct
+                                                                    );
+                                                                    setLangs(langs.map(lng =>
+                                                                        lng.id === selectedLangId
+                                                                            ? {
+                                                                                ...lng,
+                                                                                level: lng.level.map(lvl =>
+                                                                                    lvl.id === selectedLevelId
+                                                                                        ? { ...lvl, lessonTypes: updatedClassTypes }
+                                                                                        : lvl
+                                                                                ),
+                                                                            }
+                                                                            : lng
+                                                                    ));
+                                                                }}
+                                                                placeholder="Edit Class Type"
+                                                            />
+                                                            <button className="delete-btn" onClick={() => handleDeleteClassType(lng.id, lvl.id, cls.id)}>
+                                                                Delete Class Type
+                                                            </button>
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li>No class types added yet</li>
+                                                )}
+                                            </ul>
                                         </li>
                                     ))
                                 ) : (
@@ -162,6 +243,8 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     ))}
                 </ul>
             </div>
+
+            {/* Add level section */}
             <div className="add-level-group">
                 <select
                     value={selectedLangId}
@@ -186,6 +269,36 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     Add Level
                 </button>
             </div>
+
+            {/* Add class type section */}
+            <div className="add-class-type-group">
+                <select
+                    value={selectedLevelId}
+                    onChange={(e) => setSelectedLevelId(e.target.value)}
+                    className="select-field"
+                >
+                    <option value="">Select a level</option>
+                    {langs
+                        .filter(lng => lng.id === selectedLangId)
+                        .flatMap(lng => lng.level)
+                        .map((lvl) => (
+                            <option key={lvl.id} value={lvl.id}>
+                                {lvl.levelName}
+                            </option>
+                        ))}
+                </select>
+                <input
+                    className="input-field"
+                    type="text"
+                    value={classType}
+                    onChange={(e) => setClassType(e.target.value)}
+                    placeholder="Add Class Type"
+                />
+                <button type="button" onClick={addClassType} className="add-class-type-btn">
+                    Add Class Type
+                </button>
+            </div>
+
             <button type="submit" className="submit-btn">
                 {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
             </button>

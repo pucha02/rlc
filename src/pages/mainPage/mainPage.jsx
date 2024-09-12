@@ -15,10 +15,8 @@ const LanguagesList = lazy(() => import('../../services/AdminPanel/teacher_sched
 const LevelList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LevelsList'));
 const SchoolDetail = lazy(() => import('../../services/AdminPanel/data_school/SchoolDetail/SchoolDetail'));
 const SchoolList = lazy(() => import('../../services/AdminPanel/create_school/SchoolList'));
-
-
-
-
+const LessonTypes = lazy(() => import('../chooseLessonTypes/lessonTypes'));
+const TypeLessonList = lazy(() => import('../../services/AdminPanel/teacher_schedule/TypeLessonList'));
 
 
 const MainPage = () => {
@@ -32,6 +30,7 @@ const MainPage = () => {
           <Route path="/" element={<Languages schoolId='1'/>} />
           <Route path="/course" element={<Courses />} />
           <Route path="/date" element={<Date />} />
+          <Route path="/lessoTypes" element={<LessonTypes />}/>
           <Route path="/teacher" element={<Teachers schoolId='1'/>} />
           <Route path='/final' element={<FinalPage/>}/>
           <Route path="/cabinet" element={<UserProfile/>}/>
@@ -40,6 +39,7 @@ const MainPage = () => {
           <Route path="/admin/school-list" element={<SchoolList/>}/>
           <Route path="/add-booking" element={<AddBookingForm />} />
           <Route path="/bookinglist" element={<BookingList />} />
+          <Route path="/typeLessonList" element={<TypeLessonList />}/>
           <Route path="/edit-booking/:id" element={<EditBookingForm />} />
           <Route path="/languageslist" element={<LanguagesList/>}/>
           <Route path="/levelList" element={<LevelList/>}/>

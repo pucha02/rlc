@@ -10,7 +10,8 @@ function BookingList() {
   const { lang } = location.state || {};
   const { level } = location.state || {};
   const { teacherId } = location.state || {};
-
+  const { lessonTypes } = location.state || {};
+  console.log(lessonTypes)
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/bookings/${id}`);
@@ -23,27 +24,31 @@ function BookingList() {
   return (
     <div className="booking-list-container">
       <h1 className="booking-list-title">Bookings</h1>
-      <Link to="/add-booking" state={{ booking, lang, level, teacherId }} className="add-booking-btn">
+      <Link to="/add-booking" state={{ booking, lang, level, teacherId, lessonTypes }} className="add-booking-btn">
         Add New Booking
       </Link>
       <div className="booking-items">
         {booking?.level
-          .filter(levels => levels.levelName === level)
+          .filter(levels => levels.levelName === level) // Filter levels by levelName
           .map(level => (
-            level.date.map((date, index) => (
-              <Link to={`/edit-booking/${date.d}`} state={{ date, lang, level, teacherId }} className="booking-link">
-                <div key={index} className="booking-item">
-                  <p>
+            level.lessonTypes // Map through lessonTypes inside each level
+              .filter(type => type.typeName === lessonTypes) // Filter by typeName
+              .map(type =>
+                type.date.map((date, index) => (
+                  <Link to={`/edit-booking/${date.d}`} state={{ date, lang, level, teacherId, lessonTypes }} className="booking-link">
+                    <div key={index} className="booking-item">
+                      <p>
 
-                    {date.d.toLocaleString().split('T')[0]}
+                        {date.d.toLocaleString().split('T')[0]}
 
-                  </p>
-                  {/* <button onClick={() => handleDelete(date.d)} className="delete-booking-btn">
+                      </p>
+                      {/* <button onClick={() => handleDelete(date.d)} className="delete-booking-btn">
                   Delete
                 </button> */}
-                </div>
-              </Link>
-            ))
+                    </div>
+                  </Link>
+                ))
+              )
           ))}
       </div>
     </div>

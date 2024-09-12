@@ -47,7 +47,7 @@ const Booking = mongoose.model('Booking', bookingSchema);
 
 app.get('/api/schools', async (req, res) => {
     try {
-        const school = await SchoolModel.find({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.find({ id: 'school123' });
         if (!school) {
 
             return res.status(404).json({ message: 'School not found' });
@@ -62,7 +62,7 @@ app.get('/api/schools', async (req, res) => {
 app.get('/api/bookings', async (req, res) => {
     try {
 
-        const schools = await SchoolModel.find({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const schools = await SchoolModel.find({ id: 'school123' });
 
         const allTeachers = schools.map(school => school.ESL.teacher).flat();
 
@@ -101,6 +101,8 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dateses', async (req, res) =
         const level = lang.level.find(lv => lv.levelName === req.body.levelName);
         if (!level) return res.status(404).json({ message: 'Level not found' });
 
+        const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
+        if (!lessonTypes) return res.status(404).json({ message: 'Level not found' });
         // Process and adjust work times
         const workTimes = req.body.workTime.map(wt => {
             const adjustedTime = new Date(new Date(wt.time).getTime()); // Adjust for your timezone
@@ -164,7 +166,7 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dateses', async (req, res) =
         };
 
         // Add the new date to the level's dates array
-        level.date.push(newDate);
+        lessonTypes.date.push(newDate);
 
         // Save the updated school document
         await school.save();
@@ -189,9 +191,14 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dates', async (req, res) => 
 
         const lang = teacher.data.lang.find(l => l.lang === req.body.lang);
         if (!lang) return res.status(404).json({ message: 'Language not found' });
+
         const level = lang.level.find(lv => lv.levelName === req.body.levelName.levelName);
         if (!level) return res.status(404).json({ message: 'Level not found' });
-        // Process and adjust work times
+
+        const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
+        if (!lessonTypes) return res.status(404).json({ message: 'Level not found' });
+
+
         const workTimes = req.body.workTime.map(wt => {
             const adjustedTime = new Date(new Date(wt.time).getTime()); // Adjust for your timezone
             return { ...wt, time: adjustedTime };
@@ -274,11 +281,11 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dates', async (req, res) => 
             workTime: workTimes,
             nonWorkTime: nonWorkTimes
         };
-
+        console.log(newDate)
         // Remove any existing date entry with the same date
-        level.date = level.date.filter(date => date.d.getTime() !== newDate.d.getTime());
+        lessonTypes.date = lessonTypes.date.filter(date => date.d.getTime() !== newDate.d.getTime());
         // Add the new date to the teacher's dates array
-        level.date.push(newDate);
+        lessonTypes.date.push(newDate);
 
         await school.save();
         res.status(200).json({ message: 'Schedule updated successfully' });
@@ -325,7 +332,7 @@ app.post('/register', async (req, res) => {
 
 
 app.post('/registerorder', async (req, res) => {
-    const { username, email, phone, time, lang, levelName, teacherId, teacherName } = req.body;
+    const { username, email, phone, time, lang, levelName, teacherId, teacherName, lessonTypes } = req.body;
 
     try {
         // Save the new order
@@ -340,7 +347,8 @@ app.post('/registerorder', async (req, res) => {
                 "ESL.teacher.data.teacherId": teacherId,
                 "ESL.teacher.data.lang.lang": lang,
                 "ESL.teacher.data.lang.level.levelName": levelName,
-                "ESL.teacher.data.lang.level.date.workTime.time": parsedDate,
+                "ESL.teacher.data.lang.level.lessonTypes.typeName": lessonTypes,
+                "ESL.teacher.data.lang.level.lessonTypes.date.workTime.time": parsedDate,
             });
 
             if (school) {
@@ -350,38 +358,31 @@ app.post('/registerorder', async (req, res) => {
                         langItem.lang === lang &&
                         langItem.level.some(levelItem =>
                             levelItem.levelName === levelName &&
-                            levelItem.date.some(date =>
-                                date.workTime.some(workTime => {
-                                    if (workTime.time) {
-
-                                        return workTime.time.getTime() === new Date(parsedDate).getTime();
-                                    } else {
-                                        console.error('Missing workTime.time in object:', workTime);
-                                        return false;
-                                    }
-                                })
+                            levelItem.lessonTypes.some(typeItem =>
+                                typeItem.typeName === lessonTypes &&  // Check for typeName
+                                typeItem.date.some(date =>
+                                    date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
+                                )
                             )
                         )
                     )
                 );
-                console.log(school)
+
                 if (!teacher) {
-                    console.log(`No teacher ${teacherId} found with work time ${parsedDate}, lang ${lang}, and level ${levelName}`);
+                    console.log(`No teacher ${teacherId} found with work time ${parsedDate}, lang ${lang}, level ${levelName}, and type ${lessonTypes}`);
                     continue;
                 }
 
-                // Find the specific date object for this teacher
-                const dateObj = teacher.data.lang.find(langItem =>
-                    langItem.lang === lang &&
-                    langItem.level.some(levelItem =>
-                        levelItem.levelName === levelName &&
-                        levelItem.date.some(date =>
-                            date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
-                        )
-                    )
-                ).level.find(levelItem => levelItem.levelName === levelName).date.find(date =>
-                    date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
-                );
+                const dateObj = teacher.data.lang
+                    .find(langItem => langItem.lang === lang)
+                    .level
+                    .find(levelItem => levelItem.levelName === levelName)
+                    .lessonTypes
+                    .find(typeItem => typeItem.typeName === lessonTypes)  // Find the correct lesson type
+                    .date
+                    .find(date =>
+                        date.workTime.some(workTime => workTime.time.getTime() === new Date(parsedDate).getTime())
+                    );
 
                 if (!dateObj) {
                     console.log(`No date object found for time ${parsedDate}`);
@@ -395,8 +396,7 @@ app.post('/registerorder', async (req, res) => {
                 if (workTimeSlot.bookings.some(booking => booking.userName === username)) {
                     bookedSlots.push(workTimeSlot.time); // Добавляем забронированный слот в массив
                 } else {
-                    const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time });
-                    await newOrder.save();
+
                     workTimeSlot.bookings.push({ userName: username });
                     workTimeSlot.slots = (workTimeSlot.slots || 0) - 1;
                 }
@@ -494,6 +494,9 @@ app.post('/registerorder', async (req, res) => {
                 message: 'User has already booked these slots.',
                 bookedSlots // Возвращаем массив всех забронированных слотов
             });
+        } else if(bookedSlots.length == 0) {
+            const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time });
+            await newOrder.save();
         }
         res.status(201).json({ message: 'Order confirmed successfully' });
     } catch (error) {
@@ -707,7 +710,7 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
     const { schoolId, langId, levelId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.findOne({ id: 'school123' });
         
         if (!school) return res.status(404).json({ message: 'School not found' });
 
@@ -715,6 +718,7 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
         if (!language) return res.status(404).json({ message: 'Language not found' });
 
         language.level = language.level.filter((lvl) => lvl.id !== levelId);
+        console.log(language.level)
         await school.save();
 
         res.json(school);
@@ -723,11 +727,48 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
     }
 });
 
+app.delete('/deleteClassTypeFromLevel', async (req, res) => {
+    const { languageId, levelId, classTypeId } = req.body;
+    
+    try {
+        // Find the school using the schoolId from the request parameters
+        const school = await SchoolModel.findOne({ id: 'school123' });
+        console.log(school)
+        if (!school) {
+            return res.status(404).json({ error: 'School not found' });
+        }
+        
+        let languageFound = false;
+        // Iterate through the languages to find the correct level
+        school.ESL.language.forEach(lang => {
+            const level = lang.level.find(lvl => lvl.id === levelId); // Corrected lang to lvl
+            if (level) {
+                languageFound = true;
+                // Filter out the class type from the lessonTypes array
+                level.lessonTypes = level.lessonTypes.filter(ct => ct.id !== classTypeId);
+            }
+        });
+
+        if (!languageFound) {
+            return res.status(404).json({ error: 'Level or Language not found' });
+        }
+
+        // Save the school document after making changes
+        await school.save();
+
+        return res.status(200).json({ message: 'Class type deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'An error occurred while deleting class type' });
+    }
+});
+
+
 app.delete('/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => {
     const { schoolId, teacherId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.findOne({ id: 'school123' });
         if (!school) return res.status(404).send('School not found');
 
         school.ESL.teacher = school.ESL.teacher.filter(t => t.data.teacherId !== teacherId);
@@ -745,7 +786,7 @@ app.put('/updateTeacher/:schoolId', async (req, res) => {
     const { id, teacherName, langs } = req.body;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.findOne({ id: 'school123' });
         if (!school) return res.status(404).send('School not found');
 
         const teacher = school.ESL.teacher.find(t => t.data.teacherId === id);
@@ -767,7 +808,7 @@ app.delete('/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
     const { schoolId, teacherId, langId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.findOne({ id: 'school123' });
         if (!school) return res.status(404).send('School not found');
 
         const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
@@ -788,7 +829,7 @@ app.delete('/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req, res
     const { schoolId, teacherId, langId, levelId } = req.params;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'bbd935fb-a9bd-4412-810f-8ecd7189d5e7' });
+        const school = await SchoolModel.findOne({ id: 'school123' });
         if (!school) return res.status(404).send('School not found');
 
         const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);

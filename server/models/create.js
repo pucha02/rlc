@@ -14,33 +14,90 @@ const addSchool = async () => {
         // Создание нового документа школы
         const newSchool = new SchoolModel({
             ESL: {
+                id: 'school123',
+                schoolName: 'Language School',
                 language: [
                     {
-                        id: 1,
-                        lang: "English",
+                        id: 'lang1',
+                        lang: 'English',
                         level: [
                             {
-                                id: 1,
-                                levelName: "Beginner",
-                               
+                                id: 'level1',
+                                levelName: 'Beginner',
+                                lessonTypes: [
+                                    {
+                                        typeName: 'Індивідуальні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Парні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Групові',
+                                        date: [
+
+                                        ]
+                                    }
+                                ]
                             },
                             {
-                                id: 2,
-                                levelName: "Intermediate"
+                                id: 'level2',
+                                levelName: 'Intermediate',
+                                lessonTypes: [
+                                    {
+                                        typeName: 'Індивідуальні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Парні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Групові',
+                                        date: [
+
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     },
                     {
-                        id: 2,
-                        lang: "Spanish",
+                        id: 'lang2',
+                        lang: 'Spanish',
                         level: [
                             {
-                                id: 1,
-                                levelName: "Beginner",
-                            },
-                            {
-                                id: 2,
-                                levelName: "Intermediate"
+                                id: 'level3',
+                                levelName: 'Advanced',
+                                lessonTypes: [
+                                    {
+                                        typeName: 'Індивідуальні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Парні',
+                                        date: [
+
+                                        ]
+                                    },
+                                    {
+                                        typeName: 'Групові',
+                                        date: [
+
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -48,108 +105,107 @@ const addSchool = async () => {
                 teacher: [
                     {
                         data: {
+                            teacherId: 'teacher1',
+                            teacherName: 'John Doe',
                             lang: [
                                 {
-                                    id: 1,
-                                    lang: "English",
+                                    id: 'lang1',
+                                    lang: 'English',
                                     level: [
                                         {
-                                            id: 1,
-                                            levelName: "Beginner",
-                                            date: [
+                                            id: 'level1',
+                                            levelName: 'Beginner',
+                                            lessonTypes: [
                                                 {
-                                                    d: new Date("2024-09-03"),
-                                                    allSlots: 10,
-                                                    workTime: [
-                                                       
-                                                    ],
-                                                    nonWorkTime: [
-                                                       
+                                                    typeName: 'Парні',
+                                                    date: [
+                                                        {
+                                                            d: new Date(),
+                                                            allSlots: 5,
+                                                            workTime: [
+                                                                { time: new Date(), slots: 3, bookings: [] }
+                                                            ],
+                                                            nonWorkTime: [
+                                                                { start: new Date(), end: new Date() }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    typeName: 'Групові',
+                                                    date: [
+                                                        {
+                                                            d: new Date(),
+                                                            allSlots: 5,
+                                                            workTime: [
+                                                                { time: new Date(), slots: 3, bookings: [] }
+                                                            ],
+                                                            nonWorkTime: [
+                                                                { start: new Date(), end: new Date() }
+                                                            ]
+                                                        }
                                                     ]
                                                 }
                                             ]
                                         }
-                                    ]
-                                },
-                                {
-                                    id: 1,
-                                    lang: "Spanish",
-                                    level: [
-                                        {
-                                            id: 1,
-                                            levelName: "Beginner",
-                                            date: [
-                                                {
-                                                    d: new Date("2024-09-03"),
-                                                    allSlots: 10,
-                                                    workTime: [
-                                                        
-                                                    ],
-                                                    nonWorkTime: [
-                                                        
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            id: 2,
-                                            levelName: "Intermediate",
-                                            date: [
-                                                {
-                                                    d: new Date("2024-09-03"),
-                                                    allSlots: 10,
-                                                    workTime: [
-                                                        
-                                                    ],
-                                                    nonWorkTime: [
-                                                        
-                                                    ]
-                                                }
-                                            ]
-                                        }
-
                                     ]
                                 }
-                            ],
-                            teacherId: "T001",
-                            teacherName: "John Doe"
+                            ]
                         }
                     },
                     {
                         data: {
+                            teacherId: 'teacher2',
+                            teacherName: 'Jane Smith',
                             lang: [
                                 {
-                                    id: 2,
-                                    lang: "Spanish",
+                                    id: 'lang2',
+                                    lang: 'Spanish',
                                     level: [
                                         {
-                                            id: 1,
-                                            levelName: "Beginner",
-                                            date: [
+                                            id: 'level3',
+                                            levelName: 'Advanced',
+                                            lessonTypes: [
                                                 {
-                                                    d: new Date("2024-09-05"),
-                                                    allSlots: 7,
-                                                    workTime: [
-                                                        
-                                                    ],
-                                                    nonWorkTime: [
-                                                       
+                                                    typeName: 'Групові',
+                                                    date: [
+                                                        {
+                                                            d: new Date(),
+                                                            allSlots: 8,
+                                                            workTime: [
+                                                                { time: new Date(), slots: 4, bookings: [] }
+                                                            ],
+                                                            nonWorkTime: [
+                                                                { start: new Date(), end: new Date() }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                                ,
+                                                {
+                                                    typeName: 'Індивідуальні',
+                                                    date: [
+                                                        {
+                                                            d: new Date(),
+                                                            allSlots: 5,
+                                                            workTime: [
+                                                                { time: new Date(), slots: 3, bookings: [] }
+                                                            ],
+                                                            nonWorkTime: [
+                                                                { start: new Date(), end: new Date() }
+                                                            ]
+                                                        }
                                                     ]
                                                 }
                                             ]
                                         }
                                     ]
                                 }
-                            ],
-                            teacherId: "T002",
-                            teacherName: "Jane Smith"
+                            ]
                         }
                     }
-                ],
-                
-                schoolName: "Language School"
-            },
-            id: "bbd935fb-a9bd-4412-810f-8ecd7189d5e7"
+                ]
+            }
         });
 
         // Сохранение нового документа в коллекции

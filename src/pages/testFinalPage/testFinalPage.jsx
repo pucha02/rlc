@@ -20,7 +20,7 @@ const FinalPage = () => {
   const { lang_from_general_cal } = location.state || {};
   const { teacherId } = location.state || {};
   const { teacherName } = location.state || {};
-  console.log(lang_from_general_cal, level, teacherId)
+  const { lessonTypes } = location.state || {};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +48,7 @@ const FinalPage = () => {
     try {
       const response = await axios.post(
         `http://localhost:5000/registerorder`,
-        { username, email, phone, order, time, lang, levelName, teacherId, teacherName }
+        { username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes }
       );
   
       console.log(lang, levelName, teacherName, time);
@@ -59,7 +59,7 @@ const FinalPage = () => {
     } catch (error) {
       // Если у пользователя уже есть забронированные слоты
       if (error.response && error.response.status === 400 && error.response.data.bookedSlots) {
-        // Форматируем все забронированные слоты
+        
         const bookedTimes = error.response.data.bookedSlots.map(slot => new Date(slot).toLocaleString());
         setMessage(`Ви вже маєте запис на час: ${bookedTimes.join(', ')}`);
       } else {

@@ -1,30 +1,29 @@
 import { ArrayIteration } from "../../common/utils/smallFn/iterateFn";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
-import './courses.css'
 
-const Courses = () => {
+
+const LessonTypes = () => {
 
     const location = useLocation();
     const { level } = location.state || {};
     const { language } = location.state || {};
-    console.log(level)
+    const { lessonTypes } = location.state || {};
+    {console.log(lessonTypes)}
     return (
         <div className="course-page">
-            <h1 className="course-page-title">Оберіть рівень</h1>
-            {level && (
+            <h1 className="course-page-title">Оберіть Вид занятть</h1>
+            {lessonTypes && (
                 <div className="course-levels">
-                    {level.map((lv, index) => (
+                    {lessonTypes.map((ls, index) => (
                         <Link
                             className="course-level-link"
-                            to={'/lessoTypes'}
-                            state={{ level: lv.levelName, language: language, lessonTypes: lv.lessonTypes }}
+                            to={'/teacher'}
+                            state={{ level: level, language: language, lessonTypes: ls.typeName }}
                         >
                             <div className="course-level-card" key={index}>
-                                <p>
-
-                                    {lv.levelName}
-
+                                <p> 
+                                    {ls.typeName}
                                 </p>
                             </div>
                         </Link>
@@ -36,4 +35,4 @@ const Courses = () => {
     );
 };
 
-export default Courses;
+export default LessonTypes;

@@ -11,8 +11,8 @@ function AddBookingForm() {
   const { lang } = location.state || {};
   const { level } = location.state || {};
   const { teacherId } = location.state || {};
+  const { lessonTypes } = location.state || {};
 
-  
   const handleChange = (e, index) => {
     const { name, value } = e.target;
     if (index !== null) {
@@ -37,24 +37,25 @@ function AddBookingForm() {
     e.preventDefault();
 
     const requestBody = {
-        ...bookingses,
-        lang: lang, 
-        levelName: level 
+      ...bookingses,
+      lang: lang,
+      levelName: level,
+      lessonTypes: lessonTypes
     };
 
     try {
-        const url = `http://localhost:5000/api/schools/bbd935fb-a9bd-4412-810f-8ecd7189d5e7/teachers/${teacherId}/dateses`;
-        console.log('Submitting booking:', requestBody);
-        const response = await axios.put(url, requestBody);
-        console.log('Server response:', response.data);
-        navigate('/admin'); // Redirect back to the booking list after adding
+      const url = `http://localhost:5000/api/schools/school123/teachers/${teacherId}/dateses`;
+      console.log('Submitting booking:', requestBody);
+      const response = await axios.put(url, requestBody);
+      console.log('Server response:', response.data);
+      navigate('/admin'); // Redirect back to the booking list after adding
     } catch (error) {
-        console.error('Error saving booking:', error);
-        if (error.response) {
-            console.error('Response data:', error.response.data); // Log server response error
-        }
+      console.error('Error saving booking:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data); // Log server response error
+      }
     }
-};
+  };
 
 
 

@@ -23,18 +23,23 @@ const NonWorkTimeSchema = new Schema({
 
 const WorkTimeSchema = new Schema({
     time: { type: Date },
-    slots: { type: Number }, 
-    bookings:{type: Array}
+    slots: { type: Number },
+    bookings: { type: Array }
 });
 // Level Schema
+
 const LevelSchema = new Schema({
-    id: { type: String }, // Adjusted to Number
+    id: { type: String },
     levelName: { type: String },
-    date: [{
-        d: { type: Date },
-        allSlots: { type: Number }, // Adjusted to Number
-        workTime: [WorkTimeSchema],
-        nonWorkTime: [NonWorkTimeSchema],
+    lessonTypes: [{
+        id: { type: String },
+        typeName: { type: String },
+        date: [{
+            d: { type: Date },
+            allSlots: { type: Number },
+            workTime: [WorkTimeSchema],
+            nonWorkTime: [NonWorkTimeSchema],
+        }],
     }],
 });
 
@@ -63,14 +68,14 @@ const ESLSchema = new Schema({
     language: [ESLLanguageSchema],
     date: [ESLDateSchema],
     teacher: [TeacherSchema],
-    id: { type: String }, 
+    id: { type: String },
     schoolName: { type: String },
 });
 
 // School Schema
 const SchoolSchema = new Schema({
     ESL: ESLSchema,
-    id: { type: String }, 
+    id: { type: String },
 });
 
 const SchoolModel = mongoose.model('Schools', SchoolSchema);
