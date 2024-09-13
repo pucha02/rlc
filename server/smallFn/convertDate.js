@@ -29,4 +29,16 @@ function parseUkrainianDate(dateStr) {
     return new Date(formattedDateStr).toUTCString();
 }
 
-module.exports = parseUkrainianDate
+const formatDateToUkrainian = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = date.getUTCDate();
+    const monthNames = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
+    const month = monthNames[date.getUTCMonth()];
+    const year = date.getUTCFullYear();
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  
+    return `${day} ${month} ${year} р. о ${hours}:${minutes}`;
+  };
+
+module.exports = {parseUkrainianDate, formatDateToUkrainian}

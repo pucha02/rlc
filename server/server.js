@@ -1,4 +1,4 @@
-const parseUkrainianDate = require('./smallFn/convertDate')
+const { parseUkrainianDate, formatDateToUkrainian } = require('./smallFn/convertDate')
 const processBooking = require('./smallFn/processBookingForRegisterOrder')
 const putOrAddTeacherDates = require('./smallFn/putOrAddTeacherDates')
 const { findSchoolById, findTeacherById, findLanguageById, removeById, addToSchoolArray } = require('./smallFn/findFunction')
@@ -27,9 +27,11 @@ mongoose.connection.once('open', () => {
 });
 
 
-app.get('/api/schools', async (req, res) => {
+app.get('/api/schools/:schoolId', async (req, res) => {
     try {
-        const school = await SchoolModel.find({ id: 'school123' });
+        const { schoolId } = req.params
+
+        const school = await SchoolModel.find({ id: schoolId });
         if (!school) {
 
             return res.status(404).json({ message: 'School not found' });
@@ -41,10 +43,11 @@ app.get('/api/schools', async (req, res) => {
     }
 });
 
-app.get('/api/bookings', async (req, res) => {
+app.get('/api/bookings/:schoolId', async (req, res) => {
     try {
-
-        const schools = await SchoolModel.find({ id: 'school123' });
+        const { schoolId } = req.params
+        console.log(schoolId)
+        const schools = await SchoolModel.find({ id: schoolId });
 
         const allTeachers = schools.map(school => school.ESL.teacher).flat();
 
@@ -114,41 +117,54 @@ app.post('/register', async (req, res) => {
 
 
 app.post('/registerorder', async (req, res) => {
-    const { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time } = req.body;
-    const selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
+    let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count } = req.body;
+    let selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
     try {
         const bookedSlots = [];
-
+        const unBookedSlots = []
+        const order = [];
         if (selectedSlots.length > 0) {
             console.log(selectedSlots)
-            let lang, levelName, teacherId, lessonTypes, time;
-
             // Обрабатываем каждый слот из selectedSlots
-            for (const slot of selectedSlots) {
+            for (let slot of selectedSlots) {
                 [teacherName, teacherId, lang, levelName, lessonTypes, time] = slot.split(', ');
                 const parsedDate = new Date(time);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count);
 
             }
         } else if (selectedSlots.length <= 0) {
-            const parsedTimes = JSON.parse(time);
-            for (const t of parsedTimes) {
-                const parsedDate = parseUkrainianDate(t);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots);
+            let parsedTimes = JSON.parse(time);
+            for (let t of parsedTimes) {
+                let parsedDate = parseUkrainianDate(t);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count);
+
             }
 
         }
+        if (bookedSlots.length > 0 || unBookedSlots.length > 0) {
+            console.log('Забронированные слоты:', bookedSlots);
+            console.log('Незабронированные слоты:', unBookedSlots);
 
-        if (bookedSlots.length > 0) {
-            return res.status(400).json({
-                message: 'Некоторые слоты уже забронированы пользователем.',
-                bookedSlots
+            // Устанавливаем статус: 400 если есть забронированные слоты, 201 если все слоты успешно забронированы
+            const status = bookedSlots.length > 0 ? 400 : 201;
+
+            // Если есть хотя бы один незабронированный слот, создаем новый заказ
+            if (unBookedSlots.length > 0) {
+                const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: JSON.stringify(order) });
+                console.log('ЗДЕЕСЬ', teacherName)
+                await newOrder.save();
+            }
+
+            // Возвращаем ответ с правильным статусом и информацией о слотах
+            return res.status(status).json({
+                message: bookedSlots.length > 0
+                    ? 'Некоторые слоты уже забронированы пользователем.'
+                    : 'Бронирование подтверждено',
+                bookedSlots,
+                unBookedSlots
             });
-        } else if (bookedSlots.length == 0) {
-            const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: selectedSlots.join('; ') || time });
-            await newOrder.save();
-            res.status(201).json({ message: 'Бронирование подтверждено' });
         }
+
     } catch (error) {
         console.error('Ошибка при регистрации заказа:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
@@ -355,12 +371,12 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
     }
 });
 
-app.delete('/deleteClassTypeFromLevel', async (req, res) => {
+app.delete('/deleteClassTypeFromLevel/:schoolId', async (req, res) => {
     const { languageId, levelId, classTypeId } = req.body;
-
+    const { schoolId } = req.params
     try {
         // Find the school using the schoolId from the request parameters
-        const school = await SchoolModel.findOne({ id: 'school123' });
+        const school = await SchoolModel.findOne({ id: schoolId });
         console.log(school)
         if (!school) {
             return res.status(404).json({ error: 'School not found' });

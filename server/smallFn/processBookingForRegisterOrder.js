@@ -1,6 +1,7 @@
-const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots) => {
-    console.log(username, teacherId, lang, levelName, lessonTypes, parsedDate)
-    // Поиск школы, учителя и подходящих рабочих интервалов
+const {parseUkrainianDate, formatDateToUkrainian} = require('./convertDate')
+
+const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count) => {
+    
     const school = await SchoolModel.findOne({
         "ESL.teacher.data.teacherId": teacherId,
         "ESL.teacher.data.lang.lang": lang,
@@ -52,7 +53,16 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
             bookedSlots.push(workTimeSlot.time);
         } else {
             workTimeSlot.bookings.push({ userName: username });
-            workTimeSlot.slots = (workTimeSlot.slots || 0) - 1;
+            workTimeSlot.slots = (workTimeSlot.slots || 0) - count;
+            unBookedSlots.push(workTimeSlot.time);
+            order.push({
+                teacherId,
+                lang,
+                levelName,
+                lessonTypes,
+                time: workTimeSlot.time,
+                teacherName
+            });
         }
 
         // Sort workTime by time
@@ -135,7 +145,7 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
 
         // Обновляем данные школы
         await school.save();
-        console.log(`Бронирование подтверждено для времени ${parsedDate}`);
+        console.log(`Бронирование подтверждено для времени ${formatDateToUkrainian(parsedDate)}`);
     } else {
         console.log(`Школа не найдена для времени ${parsedDate}`);
     }
