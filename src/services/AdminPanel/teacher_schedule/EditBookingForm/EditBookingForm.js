@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import BookingForm from './BookingForm';
+import BookingForm from '../BookingForm/BookingForm';
 
 function EditBookingForm() {
   const [booking, setBooking] = useState({ d: '', allNr: 0, workTime: [] });
@@ -13,7 +13,8 @@ function EditBookingForm() {
   const { level } = location.state || {};
   const { teacherId } = location.state || {};
   const { lessonTypes } = location.state || {};
-
+  const { schoolId } = location.state || {};
+  
   useEffect(() => {
     if (id) {
       async function fetchBooking() {
@@ -70,9 +71,9 @@ function EditBookingForm() {
     };
     console.log('Submitting booking:', requestBody);
     try {
-      await axios.put(`http://localhost:5000/api/schools/school123/teachers/${teacherId}/dates`, requestBody);
+      await axios.put(`http://localhost:5000/api/schools/${schoolId}/teachers/${teacherId}/dates`, requestBody);
       console.log('Booking updated successfully');
-      navigate('/admin');
+      navigate(`/${schoolId}/admin`);
     } catch (error) {
       console.error('Error updating booking:', error);
     }

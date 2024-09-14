@@ -1,3 +1,4 @@
+const { type } = require('@testing-library/user-event/dist/type');
 const mongoose = require('mongoose');
 
 const itemProductSchema = new mongoose.Schema({
@@ -22,7 +23,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, unique: true }, // Ensure uniqueness for user emails
     phone: { type: String },
     password: { type: String },
-    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }] // Ensure correct reference
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
 });
 
 // const orderSchema = new mongoose.Schema({
@@ -40,7 +41,8 @@ const orderSchema = new mongoose.Schema({
     teacherName: { type: String },
     lang: { type: String }, // Removed 'unique: true'
     levelName: { type: String }, // Removed 'unique: true'
-    time: { type: String, default: 'Pending' },
+    time: { type: Array, default: 'Pending' },
+    students: {type: Array}
 });
 
 

@@ -26,7 +26,7 @@ const Backet = () => {
     return (
         <div className="backet-container">
             <div className="reg-btn-container">
-                <div className="reg-btn" onClick={() => toggleModal(true)}>Вхід / Реєстрація</div>
+            <h2>Teacher Lesson Calendar</h2>
                 <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
                     <div className="tabs">
                         <button

@@ -1,4 +1,13 @@
+*{
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+}
+
 .App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 

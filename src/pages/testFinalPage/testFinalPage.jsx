@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { formatDateToUkrainian } from "../../common/utils/smallFn/convertDate";
 import axios from "axios";
 import fetchUserData from "../../common/utils/smallFn/getUserData";
 
@@ -11,71 +12,145 @@ const FinalPage = () => {
   const [user, setUser] = useState(null);
   const [levelName, setLevelName] = useState('');
   const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [order, setOrder] = useState(null);
   const [time, setTime] = useState(null);
+  const [selectedSlots, setSelectedSlots] = useState(null);
+  const [students, setStudents] = useState([]);
+
 
   const location = useLocation();
-  const { language } = location.state || {};
-  const { level } = location.state || {};
-  const { lang_from_general_cal } = location.state || {};
-  const { teacherId } = location.state || {};
-  const { teacherName } = location.state || {};
-  const { lessonTypes } = location.state || {};
+  const { language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count } = location.state || {};
 
+  console.log(count)
   useEffect(() => {
     const fetchData = async () => {
       await fetchUserData(setUser, axios, setUsername, setEmail, setPhone);
 
       const existingData = localStorage.getItem('data');
       const selectedTimes = localStorage.getItem('selectedDates');
-      console.log(localStorage)
+      const selectedSlots = localStorage.getItem('selectedSlots');
+
       setOrder(existingData);
       setTime(selectedTimes);
+      setSelectedSlots(selectedSlots);
+
       if (language) {
-        setLang(language)
+        setLang(language);
       } else if (lang_from_general_cal) {
-        setLang(lang_from_general_cal)
+        setLang(lang_from_general_cal);
       }
-      setLevelName(level)
+      setLevelName(level);
+
+      // Initialize student fields based on the count
+      if (count) {
+        const initialStudents = Array.from({ length: count }, () => ({ name: '', email: '', phone: '' }));
+        setStudents(initialStudents);
+      }
     };
 
     fetchData();
-  }, []);
+  }, [count]);
+
+  const handleStudentChange = (index, field, value) => {
+    const updatedStudents = [...students];
+    updatedStudents[index][field] = value;
+    setStudents(updatedStudents);
+  };
+
+  const handleFillMe = () => {
+    const updatedStudents = [...students];
+    updatedStudents[0] = { name: username, email, phone };
+    setStudents(updatedStudents);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const response = await axios.post(
         `http://localhost:5000/registerorder`,
-        { username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes }
+        { username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students }
       );
-  
-      console.log(lang, levelName, teacherName, time);
-  
-      // Если все успешно, выводим сообщение
-      setMessage(response.data.message);
-  
+
+      if (response.status === 201) {
+        const bookedTimes = response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+        setMessage(`Час забронирован: ${bookedTimes.join(', ')}`);
+      }
     } catch (error) {
-      // Если у пользователя уже есть забронированные слоты
-      if (error.response && error.response.status === 400 && error.response.data.bookedSlots) {
-        
-        const bookedTimes = error.response.data.bookedSlots.map(slot => new Date(slot).toLocaleString());
-        setMessage(`Ви вже маєте запис на час: ${bookedTimes.join(', ')}`);
+      if (error.response && error.response.status === 400) {
+        const bookedTimes = error.response.data.bookedSlots.map(slot => formatDateToUkrainian(slot));
+        const unBookedTimes = error.response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+
+        let errorMessage = `Ви вже маєте запис на час: ${bookedTimes.join(', ')}`;
+
+        if (unBookedTimes.length > 0) {
+          errorMessage += `\nУспешно забронированы: ${unBookedTimes.join(', ')}`;
+        }
+        setErrorMessage(errorMessage);
       } else {
-        // Общая ошибка
-        setMessage(error.response ? error.response.data.error : 'An error occurred');
+        setErrorMessage(error.response ? error.response.data.error : 'Произошла ошибка');
       }
     }
   };
-  
-  
+
+  const renderSelectedSlots = () => {
+    const selectedSlots = localStorage.getItem('selectedSlots');
+
+    if (selectedSlots) {
+      try {
+        const parsedSlots = JSON.parse(selectedSlots);
+        if (Array.isArray(parsedSlots)) {
+          return parsedSlots.map((slot, index) => {
+            const [student, teacherId, language, level, lessonType, date] = slot.split(', ');
+            const formattedDate = formatDateToUkrainian(date);
+
+            return (
+              <ul key={index}>
+                <li>
+                  <strong>Вчитель:</strong> {student}, <strong>Мова:</strong> {language}, <strong>Рівень:</strong> {level}, <strong>Тип уроку:</strong> {lessonType}, <strong>Дата:</strong> {formattedDate}
+                </li>
+              </ul>
+            );
+          });
+        } else {
+          return <p>No valid slots found.</p>;
+        }
+      } catch (error) {
+        console.error("Error parsing selectedSlots", error);
+        return <p>Error retrieving slots.</p>;
+      }
+    } else {
+      const selectedTimes = localStorage.getItem('selectedDates');
+      if (selectedTimes) {
+        try {
+          const parsedTimes = JSON.parse(selectedTimes);
+          if (Array.isArray(parsedTimes)) {
+            return parsedTimes.map((slot, index) => (
+              <ul key={index}>
+                <li>{slot}</li>
+              </ul>
+            ));
+          } else {
+            return <p>No valid times found.</p>;
+          }
+        } catch (error) {
+          console.error("Error parsing selectedTimes", error);
+          return <p>Error retrieving times.</p>;
+        }
+      }
+    }
+
+    return <p>No selected slots or times found.</p>;
+  };
+
 
   return (
     <div>
       <div className="auth-form-container">
         <h2>Оформлення</h2>
         <form onSubmit={handleSubmit}>
+          <h3>Дані особистого кабінету</h3>
           <input
             type="text"
             placeholder="Username"
@@ -95,17 +170,40 @@ const FinalPage = () => {
             onChange={(e) => setPhone(e.target.value)}
           />
 
+          {students.map((student, index) => (
+            <div key={index}>
+              <h4>Студент {index + 1}</h4>
+              <input
+                type="text"
+                placeholder="Ім'я студента"
+                value={student.name}
+                onChange={(e) => handleStudentChange(index, 'name', e.target.value)}
+              />
+              <input
+                type="email"
+                placeholder="Email студента"
+                value={student.email}
+                onChange={(e) => handleStudentChange(index, 'email', e.target.value)}
+              />
+              <input
+                type="phone"
+                placeholder="Телефон студента"
+                value={student.phone}
+                onChange={(e) => handleStudentChange(index, 'phone', e.target.value)}
+              />
+              {index === 0 && <button type="button" onClick={handleFillMe}>Я</button>}
+            </div>
+          ))}
+
           <button type="submit">Замовити</button>
         </form>
-        {message && <p>{message}</p>}
+        {errorMessage && <p>{errorMessage}</p>}
+        {message && <p style={{ color: "green" }}>{message}</p>}
       </div>
+      {teacherName && <div>{teacherName}{renderSelectedSlots()}</div>}
+      {selectedSlots && <div>{renderSelectedSlots()}</div>}
     </div>
   );
 };
 
 export default FinalPage;
-
-
-
-
-

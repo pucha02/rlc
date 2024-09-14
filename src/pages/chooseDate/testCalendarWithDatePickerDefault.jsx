@@ -3,6 +3,7 @@ import { Datepicker, Page, setOptions, localeUa } from '@mobiscroll/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from "react-router-dom";
 import { mergeWorkAndNonWorkTimes } from '../../common/utils/smallFn/calculateTimes';
+import { parseUkrainianDate } from '../../common/utils/smallFn/convertDate';
 import './date.css'
 
 setOptions({
@@ -15,25 +16,29 @@ function Calendar2() {
   const [dates, setDates] = useState([]);
   const [multiple, setMultiple] = useState([]);
   const min = '2024-09-01T00:00';
-  const max = '2024-09-12T00:00';
+  const max = '2024-09-20T00:00';
   const [datetimeLabels, setDatetimeLabels] = useState([]);
   const [datetimeInvalid, setDatetimeInvalid] = useState([]);
   const [date, setDate] = useState([]);
+  const [freeSlot, setFreeSlot] = useState([])
 
   const location = useLocation();
   const { teacherDate } = location.state || {};
   const { level } = location.state || {};
   const { allTeachers } = location.state || {};
   const { lessonTypes } = location.state || {};
-  console.log(lessonTypes)
+  const { count } = location.state || {};
+
   const handlePageLoadingDatetime = useCallback(() => {
     const invalid = [];
     const labels = [];
 
     date.forEach(booking => {
+      
       const d = new Date(booking.d);
       const localDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
       if (booking.allSlots > 0) {
+
         labels.push({
           start: localDate,
           title: booking.allSlots + ' SPOTS',
@@ -44,6 +49,8 @@ function Calendar2() {
         invalid.push(localDate);
       }
     });
+    console.log(invalid)
+    
 
     setDatetimeLabels(labels);
     setDatetimeInvalid(invalid);
@@ -54,20 +61,25 @@ function Calendar2() {
       try {
         if (teacherDate) {
           const teacherDates = teacherDate[0].level.filter(lv => lv.levelName === level)[0].lessonTypes.filter(ls => ls.typeName == lessonTypes);
-          
+
           teacherDates[0].date.forEach((booking) => {
             booking.allSlots = booking.workTime.reduce((total, item) => total + item.slots, 0);
           });
+          const workTimes = teacherDates[0].date.flatMap(time => time.workTime);
+          setFreeSlot(workTimes)
+           
+          setDate(mergeWorkAndNonWorkTimes(teacherDates[0].date, count));
 
-          setDate(teacherDates[0].date);
+
         } else if (allTeachers) {
+
           allTeachers.forEach((booking) => {
             booking.allSlots = booking.workTime.reduce((total, item) => total + item.slots, 0);
           });
-          console.log(allTeachers)
-          const mergedTeachers = mergeWorkAndNonWorkTimes(allTeachers);
-          console.log(mergedTeachers)
+          const workTimes = allTeachers.flatMap(time => time.workTime);
+          const mergedTeachers = mergeWorkAndNonWorkTimes(allTeachers, count);
           setDate(mergedTeachers);
+          setFreeSlot(workTimes)
         }
 
         const storedDates = localStorage.getItem('selectedDates');
@@ -133,7 +145,7 @@ function Calendar2() {
           max={max}
           minTime="05:00"
           maxTime="23:59"
-          stepMinute={30}
+          stepMinute={10}
           width={null}
           labels={datetimeLabels}
           invalid={datetimeInvalid}
@@ -148,12 +160,16 @@ function Calendar2() {
         <h3>Selected Dates & Times:</h3>
         {Array.isArray(dates) && dates.length > 0 ? (
           <ul>
-            {dates.map((date, index) => (
-              <li key={index}>
-                {date}
-                <button onClick={() => handleRemoveDate(date)}>Удалить</button>
-              </li>
-            ))}
+            {dates.map((date, index) => {
+              // Найдем соответствующий объект workTime по времени
+              const matchedItem = freeSlot.find(item => new Date(item.time).getTime() === new Date(parseUkrainianDate(date)).getTime());
+              return (
+                <li key={index}>
+                  {date} {matchedItem && `(Вільних місць: ${matchedItem.slots})`}
+                  <button onClick={() => handleRemoveDate(date)}>Удалить</button>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p>No dates selected.</p>

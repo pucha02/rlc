@@ -10,7 +10,8 @@ function TypeLessonList() {
     const { level } = location.state || {};
     const { teacherId } = location.state || {};
     const { booking } = location.state || {};
-    
+    const { schoolId } = location.state || {};
+
     return (
         <div>
             <h1>Оберіть курс</h1>
@@ -19,7 +20,7 @@ function TypeLessonList() {
                 {
                     lessonTypes.map(type => (
 
-                        <Link to={`/bookinglist`} className="teacher-item" state={{ booking: booking, lang: lang, level: level, teacherId: teacherId, lessonTypes: type.typeName }}>{type.typeName}</Link>
+                        <Link to={`/bookinglist`} className="teacher-item" state={{ booking: booking, lang: lang, level: level, teacherId: teacherId, lessonTypes: type.typeName, schoolId: schoolId }}>{type.typeName}</Link>
 
                     ))
 

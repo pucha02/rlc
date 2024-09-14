@@ -15,6 +15,8 @@ const Date = () => {
   const { teacherId } = location.state || {};
   const { teacherName } = location.state || {};
   const { lessonTypes } = location.state || {};
+  const { schoolId } = location.state || {};
+  const { count } = location.state || {};
 
   const HandleFinish = () => {
     if (allTeachers) {
@@ -33,7 +35,7 @@ const Date = () => {
         localStorage.removeItem(key);
       }
     });
-
+    localStorage.setItem('selectedSlots', [])
     if (teacherDate) {
       setFinal(teacherDate[0].lang)
     }
@@ -46,7 +48,7 @@ const Date = () => {
   return (
     <div>
       <h1>Виберіть дату</h1>
-      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes }}><button>Далі</button></Link>
+      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes, schoolId: schoolId, count:count }}><button>Далі</button></Link>
       <Calendar2 />
 
     </div>

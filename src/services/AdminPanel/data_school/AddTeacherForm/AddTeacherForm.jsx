@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AddTeacherForm.css';
 
-const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeacher }) => {
+const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeacher, teacherId }) => {
     const [teacherName, setTeacherName] = useState('');
     const [lang, setLang] = useState('');
     const [langs, setLangs] = useState([]);
@@ -125,13 +125,14 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
     const handleSubmit = async (e) => {
         e.preventDefault();
         const url = editingTeacher
-            ? `http://localhost:5000/updateTeacher/school123`
+            ? `http://localhost:5000/updateTeacher/${schoolId}`
             : `http://localhost:5000/addTeacherForSchool`;
         try {
             await axios.put(url, {
-                id: 'school123',
+                id: schoolId,
                 teacherName,
                 langs,
+                teacherId,
             }, {
                 headers: { 'Content-Type': 'application/json' },
             });

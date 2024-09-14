@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import BookingForm from './BookingForm';
+import BookingForm from '../BookingForm/BookingForm';
 
 function AddBookingForm() {
   const [bookingses, setBooking] = useState({ d: '', allSlots: 0, workTime: [] });
@@ -12,6 +12,7 @@ function AddBookingForm() {
   const { level } = location.state || {};
   const { teacherId } = location.state || {};
   const { lessonTypes } = location.state || {};
+  const { schoolId } = location.state || {};
 
   const handleChange = (e, index) => {
     const { name, value } = e.target;
@@ -44,11 +45,11 @@ function AddBookingForm() {
     };
 
     try {
-      const url = `http://localhost:5000/api/schools/school123/teachers/${teacherId}/dateses`;
+      const url = `http://localhost:5000/api/schools/${schoolId}/teachers/${teacherId}/dateses`;
       console.log('Submitting booking:', requestBody);
       const response = await axios.put(url, requestBody);
       console.log('Server response:', response.data);
-      navigate('/admin'); // Redirect back to the booking list after adding
+      navigate(`/${schoolId}/admin`);// Redirect back to the booking list after adding
     } catch (error) {
       console.error('Error saving booking:', error);
       if (error.response) {
@@ -56,9 +57,6 @@ function AddBookingForm() {
       }
     }
   };
-
-
-
 
   return (
     <BookingForm

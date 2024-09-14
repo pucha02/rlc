@@ -6,24 +6,39 @@ const getTeacherAvailableTimes = (teacher, selectedTimes, lang_from_general_cal,
       const parsedAvailableTimes = JSON.parse(savedAvailableTimes);
       return parsedAvailableTimes.map(timeSlot => timeSlot.time);
     } catch (e) {
-      console.error('Invalid JSON string for availableTimes');
+      console.error('Invalid JSON string for availableTimes', e);
     }
   }
+
   // Если в localStorage данных нет, выполняем стандартный расчет
   let parsedSelectedTimes = [];
   if (typeof selectedTimes === 'string') {
     try {
       parsedSelectedTimes = JSON.parse(selectedTimes);
+      // Дополнительная проверка, чтобы убедиться, что parsedSelectedTimes является массивом
+      if (!Array.isArray(parsedSelectedTimes)) {
+        console.error('parsedSelectedTimes is not an array:', parsedSelectedTimes);
+        parsedSelectedTimes = []; // Обнуляем, чтобы избежать ошибок в дальнейшем
+      }
     } catch (e) {
-      console.error('Invalid JSON string for selectedTimes');
+      console.error('Invalid JSON string for selectedTimes', e);
     }
+  } else if (Array.isArray(selectedTimes)) {
+    parsedSelectedTimes = selectedTimes; // Если selectedTimes уже массив
   }
-  console.log('getTeacherAvailableTimes', )
-  const availableTimes = teacher.data.lang.filter(langObj => langObj.lang === lang_from_general_cal).flatMap(langObj => langObj.level).filter(lv => lv.levelName === level).flatMap(lv => lv.lessonTypes).flatMap(lv => lv.date).flatMap(dateObj => dateObj.workTime).filter(workTimeSlot =>
-    parsedSelectedTimes.some(selectedDate =>
-      new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
-    )
-  )
+
+  const availableTimes = teacher.data.lang
+    .filter(langObj => langObj.lang === lang_from_general_cal)
+    .flatMap(langObj => langObj.level)
+    .filter(lv => lv.levelName === level)
+    .flatMap(lv => lv.lessonTypes)
+    .flatMap(lv => lv.date)
+    .flatMap(dateObj => dateObj.workTime)
+    .filter(workTimeSlot =>
+      parsedSelectedTimes.some(selectedDate =>
+        new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
+      )
+    );
 
   localStorage.setItem(`availableTimes_${teacher.data.teacherId}`, JSON.stringify(availableTimes));
 

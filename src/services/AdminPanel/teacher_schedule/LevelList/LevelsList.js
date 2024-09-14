@@ -8,6 +8,7 @@ function LevelList() {
     const { booking } = location.state || {};
     const { lang } = location.state || {};
     const { teacherId } = location.state || {};
+    const { schoolId } = location.state || {};
 
     return (
         <div>
@@ -16,7 +17,7 @@ function LevelList() {
             <div className='teacher-list'>
                 {
                     booking.level.map(level => (
-                        <Link to={`/typeLessonList`} className="teacher-item" state={{booking, lang: lang, level: level.levelName, teacherId: teacherId, lessonTypes: level.lessonTypes }}>{level.levelName}</Link>   
+                        <Link to={`/typeLessonList`} className="teacher-item" state={{booking, lang: lang, level: level.levelName, teacherId: teacherId, lessonTypes: level.lessonTypes, schoolId: schoolId }}>{level.levelName}</Link>   
                     ))
 
                 }

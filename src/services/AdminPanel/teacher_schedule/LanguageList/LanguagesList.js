@@ -7,6 +7,7 @@ function LanguagesList() {
     const location = useLocation();
     const { booking } = location.state || {};
     const { teacherId } = location.state || {};
+    const { schoolId } = location.state || {};
     console.log(booking)
     return (
         <div>
@@ -16,7 +17,7 @@ function LanguagesList() {
                 {booking.data.lang.map(booking => (
 
 
-                    <Link to={`/levelList`} className="teacher-item" state={{ booking, lang: booking.lang, teacherId: teacherId }}>{booking.lang}</Link>
+                    <Link to={`/levelList`} className="teacher-item" state={{ booking, lang: booking.lang, teacherId: teacherId, schoolId: schoolId }}>{booking.lang}</Link>
 
                 ))}
             </div>

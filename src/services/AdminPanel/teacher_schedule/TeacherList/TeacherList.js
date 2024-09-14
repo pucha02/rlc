@@ -3,13 +3,13 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './TeacherList.css'; // Import the CSS file
 
-function TeacherList() {
+function TeacherList({ schoolId }) {
     const [bookings, setBookings] = useState([]);
-
+    console.log(schoolId)
     useEffect(() => {
         async function fetchBookings() {
             try {
-                const response = await axios.get('http://localhost:5000/api/bookings');
+                const response = await axios.get(`http://localhost:5000/api/bookings/${schoolId}`);
                 setBookings(response.data);
             } catch (error) {
                 console.error('Error fetching bookings:', error);
@@ -17,11 +17,11 @@ function TeacherList() {
         }
         fetchBookings();
     }, []);
-
+    console.log(schoolId)
     return (
         <div className="teacher-list-container">
             <div className="teacher-links">
-                <Link to={'/admin/school-detail'} className="nav-link">Дані школи</Link>
+                <Link to={`/${schoolId}/admin/school-detail`} state={{schoolId:schoolId}} className="nav-link">Дані школи</Link>
                 <Link to={'/admin/school-list'} className="nav-link">Перелік шкіл</Link>
             </div>
 
@@ -31,7 +31,7 @@ function TeacherList() {
                 {bookings.map(booking => (
                     <Link
                         to={`/languageslist`}
-                        state={{ booking, teacherId: booking.data.teacherId }}
+                        state={{ booking, teacherId: booking.data.teacherId, schoolId: schoolId }}
                         key={booking.id}
                         className="teacher-item"
                     >

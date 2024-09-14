@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import AddLanguageForm from '../AddLanguageForm/AddLanguageForm';
 import AddTeacherForm from '../AddTeacherForm/AddTeacherForm';
 import './SchoolDetail.css';
 
-const SchoolDetail = ({ schoolId }) => {
+const SchoolDetail = () => {
     const [school, setSchool] = useState(null);
     const [editingLang, setEditingLang] = useState(null);
     const [editingTeacher, setEditingTeacher] = useState(null);
-
+    const [teacherId, setTeacherId] = useState(null);
+    const location = useLocation()
+    const { schoolId } = location.state || {};
+    console.log(schoolId)
     const fetchSchool = async () => {
-        const res = await axios.get('http://localhost:5000/api/schools');
+        const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
         setSchool(res.data[0]);
         console.log(res.data);
     };
@@ -21,7 +25,7 @@ const SchoolDetail = ({ schoolId }) => {
 
     const deleteLanguage = async (languageId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLanguageFromSchool/school123/${languageId}`);
+            await axios.delete(`http://localhost:5000/deleteLanguageFromSchool/${schoolId}/${languageId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting language:', error);
@@ -30,7 +34,7 @@ const SchoolDetail = ({ schoolId }) => {
 
     const deleteLevel = async (languageId, levelId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLevelFromLanguage/school123/${languageId}/${levelId}`);
+            await axios.delete(`http://localhost:5000/deleteLevelFromLanguage/${schoolId}/${languageId}/${levelId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting level:', error);
@@ -40,30 +44,31 @@ const SchoolDetail = ({ schoolId }) => {
     const deleteClassType = async (languageId, levelId, classTypeId) => {
         try {
             console.log(languageId, levelId, classTypeId); // Check if these values are correct
-            
-            await axios.delete(`http://localhost:5000/deleteClassTypeFromLevel`, {
+
+            await axios.delete(`http://localhost:5000/deleteClassTypeFromLevel/${schoolId}`, {
                 data: { languageId, levelId, classTypeId } // Sending data in the body
             });
-    
+
             fetchSchool(); // Fetch the updated school info after deletion
         } catch (error) {
             console.error('Error deleting class type:', error);
         }
     };
-    
+
 
 
     const deleteTeacher = async (teacherId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteTeacherFromSchool/school123/${teacherId}`);
+            await axios.delete(`http://localhost:5000/deleteTeacherFromSchool/${schoolId}/${teacherId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting teacher:', error);
         }
     };
 
-    const startEditTeacher = (teacher) => {
+    const startEditTeacher = (teacher, teacherId) => {
         setEditingTeacher(teacher);
+        setTeacherId(teacherId)
     };
 
     if (!school) return <p>Loading...</p>;
@@ -105,7 +110,7 @@ const SchoolDetail = ({ schoolId }) => {
                     <li key={t.data.teacherId} className="teacher-item">
                         {t.data.teacherName}
                         <button onClick={() => deleteTeacher(t.data.teacherId)} className="delete-button">Delete</button>
-                        <button onClick={() => startEditTeacher(t.data)} className="edit-button">Edit</button>
+                        <button onClick={() => startEditTeacher(t.data, t.data.teacherId)} className="edit-button">Edit</button>
                     </li>
                 ))}
             </ul>
@@ -121,6 +126,7 @@ const SchoolDetail = ({ schoolId }) => {
                 fetchSchool={fetchSchool}
                 editingTeacher={editingTeacher}
                 setEditingTeacher={setEditingTeacher}
+                teacherId={teacherId}
             />
         </div>
     );

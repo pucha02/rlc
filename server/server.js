@@ -68,6 +68,19 @@ app.get('/api/bookings/:id', async (req, res) => {
     }
 });
 
+app.get('/api/teacherOrders', async (req, res) => {
+    const { teacherId, lessonTypes } = req.query
+    try {
+        console.log(teacherId, lessonTypes)
+        const order = await Order.find({ "time.teacherId": teacherId, "time.lessonTypes": lessonTypes })
+
+        if (!order) return res.status(404).json({ message: 'order not found' });
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 app.put('/api/schools/:schoolId/teachers/:teacherId/dateses', async (req, res) => {
     try {
         const { schoolId, teacherId } = req.params;
@@ -117,7 +130,7 @@ app.post('/register', async (req, res) => {
 
 
 app.post('/registerorder', async (req, res) => {
-    let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count } = req.body;
+    let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count, students } = req.body;
     let selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
     try {
         const bookedSlots = [];
@@ -129,14 +142,14 @@ app.post('/registerorder', async (req, res) => {
             for (let slot of selectedSlots) {
                 [teacherName, teacherId, lang, levelName, lessonTypes, time] = slot.split(', ');
                 const parsedDate = new Date(time);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students);
 
             }
         } else if (selectedSlots.length <= 0) {
             let parsedTimes = JSON.parse(time);
             for (let t of parsedTimes) {
                 let parsedDate = parseUkrainianDate(t);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students);
 
             }
 
@@ -150,7 +163,7 @@ app.post('/registerorder', async (req, res) => {
 
             // Если есть хотя бы один незабронированный слот, создаем новый заказ
             if (unBookedSlots.length > 0) {
-                const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: JSON.stringify(order) });
+                const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: order, students });
                 console.log('ЗДЕЕСЬ', teacherName)
                 await newOrder.save();
             }

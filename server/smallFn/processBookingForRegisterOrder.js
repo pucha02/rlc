@@ -1,6 +1,6 @@
 const {parseUkrainianDate, formatDateToUkrainian} = require('./convertDate')
 
-const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count) => {
+const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students) => {
     
     const school = await SchoolModel.findOne({
         "ESL.teacher.data.teacherId": teacherId,
@@ -61,7 +61,8 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
                 levelName,
                 lessonTypes,
                 time: workTimeSlot.time,
-                teacherName
+                teacherName,
+                students
             });
         }
 
