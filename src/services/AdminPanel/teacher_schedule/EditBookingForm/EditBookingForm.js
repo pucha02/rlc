@@ -20,9 +20,19 @@ function EditBookingForm() {
       async function fetchBooking() {
         try {
           console.log('Fetching booking with ID:', id);
-          // Simulate fetching data
-          setBooking(date);
-          console.log('Fetched booking:', date);
+  
+          // Преобразуем время в локальное время
+          const normalizedBooking = {
+            ...date,
+            workTime: date.workTime.map(item => ({
+              ...item,
+              time: new Date(item.time).toISOString().slice(0, 16) // Приводим к формату 'yyyy-MM-ddTHH:mm'
+            }))
+          };
+  
+          // Устанавливаем преобразованное время
+          setBooking(normalizedBooking);
+          console.log('Fetched booking with normalized time:', normalizedBooking);
         } catch (error) {
           console.error('Error fetching booking:', error);
         }
@@ -30,6 +40,7 @@ function EditBookingForm() {
       fetchBooking();
     }
   }, [id, date]);
+  
 
   const handleChange = (e, index) => {
     const { name, value } = e.target;

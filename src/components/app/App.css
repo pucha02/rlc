@@ -3,6 +3,11 @@
   font-optical-sizing: auto;
 }
 
+body{
+  margin: 0;
+  padding: 0;
+}
+
 .App {
   display: flex;
   flex-direction: column;

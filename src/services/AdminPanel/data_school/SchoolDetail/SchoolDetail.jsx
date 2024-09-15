@@ -25,7 +25,7 @@ const SchoolDetail = () => {
 
     const deleteLanguage = async (languageId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLanguageFromSchool/${schoolId}/${languageId}`);
+            await axios.delete(`http://localhost:5000/api/api/deleteLanguageFromSchool/${schoolId}/${languageId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting language:', error);
@@ -34,7 +34,7 @@ const SchoolDetail = () => {
 
     const deleteLevel = async (languageId, levelId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteLevelFromLanguage/${schoolId}/${languageId}/${levelId}`);
+            await axios.delete(`http://localhost:5000/api/api/deleteLevelFromLanguage/${schoolId}/${languageId}/${levelId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting level:', error);
@@ -45,7 +45,7 @@ const SchoolDetail = () => {
         try {
             console.log(languageId, levelId, classTypeId); // Check if these values are correct
 
-            await axios.delete(`http://localhost:5000/deleteClassTypeFromLevel/${schoolId}`, {
+            await axios.delete(`http://localhost:5000/api/deleteClassTypeFromLevel/${schoolId}`, {
                 data: { languageId, levelId, classTypeId } // Sending data in the body
             });
 
@@ -59,7 +59,7 @@ const SchoolDetail = () => {
 
     const deleteTeacher = async (teacherId) => {
         try {
-            await axios.delete(`http://localhost:5000/deleteTeacherFromSchool/${schoolId}/${teacherId}`);
+            await axios.delete(`http://localhost:5000/api/deleteTeacherFromSchool/${schoolId}/${teacherId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting teacher:', error);

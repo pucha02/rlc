@@ -3,7 +3,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';  // Import uuid
 
 const SchoolForm = ({ school, fetchSchools }) => {
-    const [formData, setFormData] = useState(school || { ESL: { schoolName: '', language: [], teacher: [], id: uuidv4() } });
+    const [formData, setFormData] = useState(school || { ESL: { schoolName: '', language: [], teacher: [] }, id: uuidv4() });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -14,11 +14,11 @@ const SchoolForm = ({ school, fetchSchools }) => {
         e.preventDefault();
         try {
             if (school) {
-                await axios.put(`http://localhost:5000/schools/${school._id}`, formData);
+                await axios.put(`http://localhost:5000/api/schools/${school._id}`, formData);
             } else {
                 // Generate an ID before creating a new school
                 formData.ESL.id = uuidv4();
-                await axios.post('http://localhost:5000/schools', formData);
+                await axios.post('http://localhost:5000/api/schools', formData);
             }
             fetchSchools();
         } catch (error) {

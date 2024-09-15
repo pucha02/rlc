@@ -13,7 +13,7 @@ function TypeLessonList() {
     const { schoolId } = location.state || {};
 
     return (
-        <div>
+        <div className='teacher-list-container'>
             <h1>Оберіть курс</h1>
 
             <div className='teacher-list'>

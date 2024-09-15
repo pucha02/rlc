@@ -4,22 +4,25 @@ body {
 }
 
 .main {
-  width: 100%;
+  width: 70%;
+  height: 74vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #ffffff;
+
 }
 
 .container {
   position: relative;
   display: flex;
+  background-color: #ffffff;
   align-items: center;
   justify-content: center;
-  width: 60%;
-  height: 550px;
+  width: 100%;
+  height: 100%;
   margin: 0 auto;
-  margin-top: 50px;
-  background-color: #ffffff;
+  /* margin-top: 100px; */
   border-radius: 14px;
 }
 
@@ -35,6 +38,7 @@ body {
   font-size: 2rem;
   margin-bottom: 2rem;
   color: #333;
+  font-size: 28px;
 }
 
 .loading {
@@ -50,14 +54,11 @@ body {
 }
 
 .school-data {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  
-  margin-top: 2rem;
-  height: 268px;
   overflow-y: auto;
   padding: 0 20px 0 20px;
+  margin: 0 auto;
+  width: 40%;
+  height: 51vh;
 }
 
 .school-data-title {
@@ -81,7 +82,7 @@ body {
 }
 
 .language-item p {
-  margin: 15px;
+  margin: 10px;
 }
 
 .language-item:hover {
@@ -100,16 +101,15 @@ body {
   color: #007bff;
 }
 
-
 .logo {
   position: absolute;
-  top: -60px;
+  top: -40px;
   left: 0;
-  
+
 }
 
 .logo-items {
-  margin-left: 50px;
+  margin-left: 80px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -117,22 +117,91 @@ body {
 }
 
 .logo-items img {
-  margin-right: 10px; /* Отступ справа для логотипа, если нужно отделить от текста */
-  position: relative; /* Убедитесь, что картинка не имеет абсолютного позиционирования */
+  margin-right: 10px;
+  position: relative;
+  width: 70px;
+  height: 70px;
 }
 
+
 .logo-name {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 24px;
   text-align: center;
-  
+  margin-top: 10px;
 }
 
 .logo-name span {
   color: #F8C744;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 24px;
-  
+
+}
+
+.select-date-link,
+.teacher-link {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.teacher-link{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.select-date-link button {
+  background-color: #4D7D6D;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.teacher-link:hover,
+.select-date-link:hover {
+  color: #0056b3;
+}
+
+@media (max-width: 500px) {
+  .main {
+    height: 69vh;
+    width: 100%;
+  }
+
+  .school-data {
+    width: 60%;
+    height: 37vh;
+  }
+
+  .logo-name {
+    font-size: 16px;
+  }
+
+  .logo-name span {
+    font-size: 18px;
+  }
+
+  .languages-title {
+    font-size: 24px;
+  }
+
+  .logo-items img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-items {
+    margin-left: 20px;
+  }
+
+  .logo {
+    top: -30px;
+  }
 }

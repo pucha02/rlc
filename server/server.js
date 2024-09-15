@@ -71,7 +71,6 @@ app.get('/api/bookings/:id', async (req, res) => {
 app.get('/api/teacherOrders', async (req, res) => {
     const { teacherId, lessonTypes } = req.query
     try {
-        console.log(teacherId, lessonTypes)
         const order = await Order.find({ "time.teacherId": teacherId, "time.lessonTypes": lessonTypes })
 
         if (!order) return res.status(404).json({ message: 'order not found' });
@@ -104,7 +103,7 @@ app.put('/api/schools/:schoolId/teachers/:teacherId/dates', async (req, res) => 
 });
 
 
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
     const { username, email, phone, password } = req.body;
 
     try {
@@ -129,7 +128,7 @@ app.post('/register', async (req, res) => {
 });
 
 
-app.post('/registerorder', async (req, res) => {
+app.post('/api/registerorder', async (req, res) => {
     let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count, students } = req.body;
     let selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
     try {
@@ -185,7 +184,7 @@ app.post('/registerorder', async (req, res) => {
 });
 
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -210,7 +209,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.post('/logout', (req, res) => {
+app.post('/api/logout', (req, res) => {
     res.clearCookie('token').json({ message: 'Logged out successfully' });
 });
 
@@ -230,7 +229,7 @@ const auth = (req, res, next) => {
     }
 };
 
-app.get('/me', auth, async (req, res) => {
+app.get('/api/me', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId);
 
@@ -247,7 +246,7 @@ app.get('/me', auth, async (req, res) => {
     }
 });
 
-app.post('/schools', async (req, res) => {
+app.post('/api/schools', async (req, res) => {
     try {
         const newSchool = new SchoolModel({
             ESL: {
@@ -264,7 +263,7 @@ app.post('/schools', async (req, res) => {
 });
 
 // Edit school by ID
-app.put('/schools/:id', async (req, res) => {
+app.put('/api/schools/:id', async (req, res) => {
     try {
         const updatedSchool = await SchoolModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.send(updatedSchool);
@@ -274,7 +273,7 @@ app.put('/schools/:id', async (req, res) => {
 });
 
 // Delete school
-app.delete('/schools/:id', async (req, res) => {
+app.delete('/api/schools/:id', async (req, res) => {
     try {
         const school = await SchoolModel.findByIdAndDelete(req.params.id);
         res.send(school);
@@ -283,7 +282,7 @@ app.delete('/schools/:id', async (req, res) => {
     }
 });
 
-app.put('/schools/:id/languages', async (req, res) => {
+app.put('/api/schools/:id/languages', async (req, res) => {
     try {
         const school = await findSchoolById(req.params.id, SchoolModel);
         school.ESL.language.push(req.body);
@@ -295,7 +294,7 @@ app.put('/schools/:id/languages', async (req, res) => {
 });
 
 // Добавление языка для школы
-app.put('/addLanguageForSchool', async (req, res) => {
+app.put('/api/addLanguageForSchool', async (req, res) => {
     const { id, lang, levels } = req.body;
 
     const newLanguage = { id: uuidv4(), lang: lang, level: levels };
@@ -310,7 +309,7 @@ app.put('/addLanguageForSchool', async (req, res) => {
 });
 
 // Добавление учителя для школы
-app.put('/addTeacherForSchool', async (req, res) => {
+app.put('/api/addTeacherForSchool', async (req, res) => {
     const { id, teacherName, langs } = req.body;
 
     const newTeacher = { data: { teacherName: teacherName, teacherId: uuidv4(), lang: langs } };
@@ -325,7 +324,7 @@ app.put('/addTeacherForSchool', async (req, res) => {
 });
 
 
-app.put('/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
+app.put('/api/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
     const { schoolId, langId } = req.params;
     const { lang, levels } = req.body;
 
@@ -347,7 +346,7 @@ app.put('/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
 });
 
 // Маршрут для удаления языка
-app.delete('/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
+app.delete('/api/api/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
     const { schoolId, langId } = req.params;
 
     try {
@@ -364,7 +363,7 @@ app.delete('/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
 });
 
 // Маршрут для удаления уровня из языка
-app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, res) => {
+app.delete('/api/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, res) => {
     const { schoolId, langId, levelId } = req.params;
 
     try {
@@ -384,7 +383,7 @@ app.delete('/deleteLevelFromLanguage/:schoolId/:langId/:levelId', async (req, re
     }
 });
 
-app.delete('/deleteClassTypeFromLevel/:schoolId', async (req, res) => {
+app.delete('/api/deleteClassTypeFromLevel/:schoolId', async (req, res) => {
     const { languageId, levelId, classTypeId } = req.body;
     const { schoolId } = req.params
     try {
@@ -421,7 +420,7 @@ app.delete('/deleteClassTypeFromLevel/:schoolId', async (req, res) => {
 });
 
 
-app.delete('/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => {
+app.delete('/api/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => {
     const { schoolId, teacherId } = req.params;
 
     try {
@@ -437,12 +436,12 @@ app.delete('/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res) => 
 });
 
 // Обновить учителя
-app.put('/updateTeacher/:schoolId', async (req, res) => {
+app.put('/api/updateTeacher/:schoolId', async (req, res) => {
     const { schoolId } = req.params;
     const { id, teacherName, langs, teacherId } = req.body;
 
     try {
-        const school = await SchoolModel.findOne({ id: 'school123' });
+        const school = await SchoolModel.findOne({ id: schoolId });
         if (!school) return res.status(404).send('School not found');
 
         const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
@@ -461,7 +460,7 @@ app.put('/updateTeacher/:schoolId', async (req, res) => {
 });
 
 
-app.delete('/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
+app.delete('/api/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
     const { schoolId, teacherId, langId } = req.params;
 
     try {
@@ -480,7 +479,7 @@ app.delete('/deleteLang/:schoolId/:teacherId/:langId', async (req, res) => {
 });
 
 // Удаление уровня
-app.delete('/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req, res) => {
+app.delete('/api/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req, res) => {
     const { schoolId, teacherId, langId, levelId } = req.params;
 
     try {

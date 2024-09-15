@@ -2,10 +2,15 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import LogoImg from '../../services/images/Group12.svg'
 import { parseUkrainianDate, formatDateToUkrainian } from '../../common/utils/smallFn/convertDate'
 import getTeacherAvailableTimes from "../../common/utils/smallFn/getTeacherAvaliableTimes";
 import selectTeacherAndDates from "../../common/utils/smallFn/selectTeacherDataFromGeneralCalendar";
+import Teacher1Img from '../../services/images/teach1.jpg'
+import Teacher2Img from '../../services/images/teach2.jpg'
+
 import '../chooseLanguage/language.css';
+import './teachers.css'
 
 const Teachers = () => {
   const [schoolData, setSchoolData] = useState(null);
@@ -38,7 +43,7 @@ const Teachers = () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
       let teachers = response.data[0].ESL.teacher;
-      console.log(teachers)
+
       if (level) {
         let parsedSelectedTimes = [];
         if (typeof selectedTimes === 'string' && selectedTimes.length > 0) {
@@ -134,72 +139,96 @@ const Teachers = () => {
   return (
     <div className="main">
       <div className="container">
+        <div className='logo'>
+          <div className='logo-items'>
+            <img src={LogoImg} alt="Logo" />
+          </div>
+        </div>
         <div className="container-items-block">
-          <h1 className="languages-title">Оберіть вчителя</h1>
+          <h1 className="teacher-title">Оберіть вчителя</h1>
+
           {schoolData && (
-            <div className="school-data">
-              {language && <div>
-                <Link to={'/date'} state={{ allTeachers: allTeachers, level: level, lang: lang, lessonTypes: lessonTypes, schoolId: schoolId, count: count ? count : counts }} className="select-date-link">
-                  <button>Select Date</button>
-                </Link>
-                {lessonTypes != 'Індивідуальні' && <input
-                  type="number"
-                  placeholder="Кількість учнів для бронювання"
-                  value={counts}
-                  min={1}
-                  max={lessonTypes == 'Парні' ? 2 : ''}
-                  onChange={(e) => setCount(e.target.value)}
-                />}
-
-              </div>}
-
-              {schoolData.map((teacher, index) => (
-                <div className="language-item" key={index}>
-                  <Link to={HandleFinish()} state={{
-                    teacherDate: teacher.data.lang.filter(lang => lang.lang === language),
-                    level: level,
-                    lang_from_general_cal: lang,
-                    teacherId: teacher.data.teacherId,
-                    teacherName: teacher.data.teacherName,
-                    lessonTypes: lessonTypes,
-                    schoolId: schoolId,
-                    count: count ? count : counts
-                  }} className="teacher-link">
-                    <p>{teacher.data.teacherName}</p>
+            <>
+              {language &&
+                <div className="selectDateAndCount">
+                  <Link to={'/date'} state={{ allTeachers: allTeachers, level: level, lang: lang, lessonTypes: lessonTypes, schoolId: schoolId, count: count ? count : counts }} className="select-date-link">
+                    <button>Обрати час</button>
                   </Link>
+                  {lessonTypes != 'Індивідуальні' && <div className="select-count">
+                    <div>Введіть кількість учнів</div>
+                    <input
+                      type="number"
+                      placeholder="Кількість учнів для бронювання"
+                      value={counts}
+                      min={1}
+                      max={lessonTypes == 'Парні' ? 2 : ''}
+                      onChange={(e) => setCount(e.target.value)}
+                    />
+                  </div>}
 
-                  <div className="teacher-times">
-                    {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length > 0 ? (
-                      <>
-                        <ul>
-                          {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).map((time, idx) => (
-                            <li
-                              key={idx}
-                              onClick={() => selectTeacherAndDates(
-                                teacher,
-                                lang,
-                                level,
-                                lessonTypes,
-                                time,
-                                setSelectTimes,
-                                selectTimes
-                              )}
-                              style={{
-                                cursor: 'pointer',
-                                backgroundColor: selectTimes.includes(`${teacher.data.teacherName}, ${teacher.data.teacherId}, ${lang}, ${level}, ${lessonTypes}, ${time}`) ? 'lightgreen' : 'black'
-                              }}
-                            >
-                              {formatDateToUkrainian(time)}
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : null}
-                  </div>
                 </div>
-              ))}
+              }
+              <div className="teachers-data">
+                {schoolData.map((teacher, index) => (
+                  <div className="teacher" key={index}>
+                    <div className="teacherData">
+                      <div className="teacherImg">
+                        <img src={Teacher1Img} alt="" />
+                      </div>
+                      <div className="name-and-btn">
+                        <div className="teacher-link">
+                          <p>{teacher.data.teacherName}</p>
+                        </div>
+                        {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length <= 0 ? 
+                        <Link to={HandleFinish()} state={{
+                          teacherDate: teacher.data.lang.filter(lang => lang.lang === language),
+                          level: level,
+                          lang_from_general_cal: lang,
+                          teacherId: teacher.data.teacherId,
+                          teacherName: teacher.data.teacherName,
+                          lessonTypes: lessonTypes,
+                          schoolId: schoolId,
+                          count: count ? count : counts
+                        }} className="select-btn">
+                          <div><p>Обрати</p></div>
+                        </Link> : <div className="select-btn"><p>Оберіть час</p></div>
+                      }
+                        
+                      </div>
+                    </div>
+                    <hr />
+                    <div className="teacher-times">
+                      {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length > 0 ? (
+                        <>
+                          <ul>
+                            {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).map((time, idx) => (
+                              <li
+                                key={idx}
+                                onClick={() => selectTeacherAndDates(
+                                  teacher,
+                                  lang,
+                                  level,
+                                  lessonTypes,
+                                  time,
+                                  setSelectTimes,
+                                  selectTimes
+                                )}
+                                style={{
+                                  cursor: 'pointer',
+                                  backgroundColor: selectTimes.includes(`${teacher.data.teacherName}, ${teacher.data.teacherId}, ${lang}, ${level}, ${lessonTypes}, ${time}`) ? 'lightgreen' : 'grey'
+                                }}
+                              >
+                                {formatDateToUkrainian(time)}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
 
-              {/* Отображаем кнопку "Далі" один раз, после всех учителей */}
+              </div>
               {schoolData.some(teacher =>
                 getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length > 0
               ) && (
@@ -211,16 +240,16 @@ const Teachers = () => {
                     lessonTypes: lessonTypes,
                     schoolId: schoolId,
                     count: count ? count : counts
-                  }} className="teacher-link">
+                  }} className="select-btn">
                     <p>Далі</p>
                   </Link>
                 )}
+            </>)}
 
-            </div>
-          )}
         </div>
+
       </div>
-    </div>
+    </div >
   );
 };
 

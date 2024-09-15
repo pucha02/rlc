@@ -3,6 +3,7 @@ import { useState } from "react";
 import Modal from "../../common/components/modal/modal"
 import Registration from "../regPages/Registration";
 import Login from "../regPages/Login";
+import PersonalCabImg from '../../services/images/personal-cab.png'
 import './backet.css'
 
 const Backet = () => {
@@ -46,7 +47,7 @@ const Backet = () => {
                 </Modal>
             </div>
             <div className="personal-cabinet-btn" onClick={handlePersonalCabinetClick}>
-                PersonalCabinet
+                <img src={PersonalCabImg} alt="" />
             </div>
         </div>
     )

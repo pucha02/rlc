@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import SchoolForm from './SchoolForm';
 
@@ -6,8 +7,12 @@ const SchoolList = () => {
     const [schools, setSchools] = useState([]);
     const [editingSchool, setEditingSchool] = useState(null);
 
+    const location = useLocation()
+    const { schoolId } = location.state || {};
+
+
     const fetchSchools = async () => {
-        const res = await axios.get('http://localhost:5000/api/schools');
+        const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
         setSchools(res.data);
     };
 
@@ -16,7 +21,7 @@ const SchoolList = () => {
     };
 
     const handleDelete = async (id) => {
-        await axios.delete(`http://localhost:5000/schools/${id}`);
+        await axios.delete(`http://localhost:5000/api/schools/${id}`);
         fetchSchools();
     };
 

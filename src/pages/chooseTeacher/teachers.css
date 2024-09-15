@@ -1,57 +1,79 @@
-/* Teachers.css */
-.teachers-container {
-    padding: 2rem;
+.teacher-title {
+  font-size: 28px;
+}
+
+.teacherData {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 90%;
+
+}
+
+.select-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+
+.select-btn p {
+  background-color: #4D7D6D;
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.teacherImg {
+  width: 40%;
+}
+
+.teacherImg img {
+  display: flex;
+  width: 115px;
+  height: 115px;
+}
+
+.teachers-data {
+  overflow-y: auto;
+  padding: 0 20px 0 20px;
+  margin: 0 auto;
+  width: 80%;
+  height: 51vh;
+}
+
+.name-and-btn {
+  display: flex;
+  justify-content: space-between;
+  width: 60%;
+}
+
+.selectDateAndCount {
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+  margin: 0 auto;
+}
+
+.select-count input {
+  margin-top: 5px;
+}
+
+@media (max-width: 500px) {
+  .name-and-btn {
+    display: block;
   }
-  
-  .teachers-title {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    color: #333;
+
+  .teacherData {
+    width: 100%;
   }
-  
-  .loading {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #007bff;
+
+  .selectDateAndCount {
+    width: 80%;
   }
-  
-  .error {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #ff0000;
-  }
-  
-  .school-data {
-    margin-top: 2rem;
-  }
-  
-  .school-data-title {
-    font-size: 1.5rem;
-    color: #555;
-    margin-bottom: 1rem;
-  }
-  
-  .teacher-item {
-    background-color: #f9f9f9;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-  
-  .teacher-item:hover {
-    transform: translateY(-5px);
-  }
-  
-  .select-date-link, .teacher-link {
-    text-decoration: none;
-    color: #007bff;
-    font-weight: bold;
-  }
-  
-  .teacher-link:hover, .select-date-link:hover {
-    color: #0056b3;
-  }
-  
+
+}

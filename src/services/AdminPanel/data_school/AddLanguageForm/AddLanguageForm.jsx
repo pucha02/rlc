@@ -60,11 +60,11 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
         e.preventDefault();
 
         const endpoint = editingLang 
-            ? `http://localhost:5000/editLanguageForSchool/school123/${editingLang.id}` 
-            : 'http://localhost:5000/addLanguageForSchool';
+            ? `http://localhost:5000/api/editLanguageForSchool/${schoolId}/${editingLang.id}` 
+            : 'http://localhost:5000/api/addLanguageForSchool';
 
         const payload = {
-            id: 'school123',
+            id: schoolId,
             lang,
             levels
         };

@@ -10,7 +10,7 @@ function LanguagesList() {
     const { schoolId } = location.state || {};
     console.log(booking)
     return (
-        <div>
+        <div className='teacher-list-container'>
             <h1>Оберіть мову</h1>
 
             <div className='teacher-list'>

@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backet from '../backet/backet';
+import Footer from '../../common/components/Footer/Footer';
 
 const SchoolDetailWrapper = lazy(() => import('../../services/AdminPanel/data_school/SchoolDetail/SchoolDetailWrapper'));
 const AdminWrapper = lazy(() => import('../../services/AdminPanel/teacher_schedule/TeacherList/AdminWrapper'));
@@ -14,8 +15,6 @@ const UserProfile = lazy(() => import('../regPages/UserProfile'));
 const BookingList = lazy(() => import('../../services/AdminPanel/teacher_schedule/BookingList/BookingList'));
 const AddBookingForm = lazy(() => import('../../services/AdminPanel/teacher_schedule/AddBookingForm/AddBookingForm'));
 const EditBookingForm = lazy(() => import('../../services/AdminPanel/teacher_schedule/EditBookingForm/EditBookingForm'));
-const TeacherList = lazy(() => import('../../services/AdminPanel/teacher_schedule/TeacherList/TeacherList'));
-const SchoolDetail = lazy(() => import('../../services/AdminPanel/data_school/SchoolDetail/SchoolDetail'));
 const SchoolList = lazy(() => import('../../services/AdminPanel/create_school/SchoolList'));
 const LanguagesList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LanguageList/LanguagesList'));
 const LevelList = lazy(() => import('../../services/AdminPanel/teacher_schedule/LevelList/LevelsList'));
@@ -48,6 +47,7 @@ const MainPage = () => {
           <Route path="/levelList" element={<LevelList />} />
         </Routes>
       </Suspense>
+      <Footer/>
     </Router>
   );
 };

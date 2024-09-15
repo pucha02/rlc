@@ -125,8 +125,8 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
     const handleSubmit = async (e) => {
         e.preventDefault();
         const url = editingTeacher
-            ? `http://localhost:5000/updateTeacher/${schoolId}`
-            : `http://localhost:5000/addTeacherForSchool`;
+            ? `http://localhost:5000/api/updateTeacher/${schoolId}`
+            : `http://localhost:5000/api/addTeacherForSchool`;
         try {
             await axios.put(url, {
                 id: schoolId,

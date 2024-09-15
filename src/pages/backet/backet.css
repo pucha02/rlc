@@ -1,15 +1,16 @@
 /* Backet.css */
 .backet-container {
-    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: max-content;
     margin: 0 auto;
+    height: 12.5vh;
 
 }
 
-.reg-btn-container h2{
+.reg-btn-container h2 {
+    margin: 10px;
     padding-right: 50px;
 }
 
@@ -55,7 +56,6 @@
 }
 
 .personal-cabinet-btn {
-    background-color: #28a745;
     color: #fff;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -65,4 +65,24 @@
 
 .personal-cabinet-btn:hover {
     background-color: #218838;
+}
+
+@media (max-width: 500px) {
+    .reg-btn-container h2 {
+        font-size: 14px;
+        padding-right: 0;
+    }
+
+    .backet-container {
+        width: 100%;
+    }
+
+    .reg-btn-container {
+        width: 100%;
+
+    }
+    .personal-cabinet-btn{
+        position: absolute;
+        right: 0;
+    }
 }

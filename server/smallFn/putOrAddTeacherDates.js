@@ -1,22 +1,23 @@
 const putOrAddTeacherDates = async (SchoolModel, schoolId, teacherId, req, res) => {
     const school = await SchoolModel.findOne({ "id": schoolId, "ESL.teacher.data.teacherId": teacherId });
     if (!school) return res.status(404).json({ message: 'School or teacher not found' });
+    console.log(schoolId, teacherId)
 
-    
     const teacher = school.ESL.teacher.find(t => t.data.teacherId === teacherId);
 
     const lang = teacher.data.lang.find(l => l.lang === req.body.lang);
     if (!lang) return res.status(404).json({ message: 'Language not found' });
-    
+
     const level = lang.level.find(lv => lv.levelName === req.body.levelName.levelName || req.body.levelName);
     if (!level) return res.status(404).json({ message: 'Level not found' });
-    console.log(!level)
+
     const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
     if (!lessonTypes) return res.status(404).json({ message: 'Level not found' });
 
-    
+
     const workTimes = req.body.workTime.map(wt => {
-        const adjustedTime = new Date(new Date(wt.time).getTime()); // Adjust for your timezone
+        const adjustedTime = new Date(new Date(wt.time).getTime() + 3 * 60 * 60 * 1000);
+        console.log(adjustedTime)
         return { ...wt, time: adjustedTime };
     }).sort((a, b) => new Date(a.time) - new Date(b.time));
 
@@ -97,7 +98,7 @@ const putOrAddTeacherDates = async (SchoolModel, schoolId, teacherId, req, res) 
         workTime: workTimes,
         nonWorkTime: nonWorkTimes
     };
-    
+
     // Remove any existing date entry with the same date
     lessonTypes.date = lessonTypes.date.filter(date => date.d.getTime() !== newDate.d.getTime());
     // Add the new date to the teacher's dates array

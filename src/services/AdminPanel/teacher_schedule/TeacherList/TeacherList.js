@@ -21,8 +21,8 @@ function TeacherList({ schoolId }) {
     return (
         <div className="teacher-list-container">
             <div className="teacher-links">
-                <Link to={`/${schoolId}/admin/school-detail`} state={{schoolId:schoolId}} className="nav-link">Дані школи</Link>
-                <Link to={'/admin/school-list'} className="nav-link">Перелік шкіл</Link>
+                <Link to={`/${schoolId}/admin/school-detail`} state={{ schoolId: schoolId }} className="nav-link">Дані школи</Link>
+                <Link to={'/admin/school-list'} state={{ schoolId: schoolId }} className="nav-link">Перелік шкіл</Link>
             </div>
 
             <h1 className="teacher-list-title">Оберіть вчителя</h1>
