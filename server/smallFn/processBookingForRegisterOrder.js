@@ -1,7 +1,8 @@
-const {parseUkrainianDate, formatDateToUkrainian} = require('./convertDate')
+const { parseUkrainianDate, formatDateToUkrainian } = require('./convertDate')
+const { v4: uuidv4 } = require('uuid');
 
-const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students) => {
-    
+const processBooking = async (username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students, payment_status) => {
+
     const school = await SchoolModel.findOne({
         "ESL.teacher.data.teacherId": teacherId,
         "ESL.teacher.data.lang.lang": lang,
@@ -9,7 +10,7 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
         "ESL.teacher.data.lang.level.lessonTypes.typeName": lessonTypes,
         "ESL.teacher.data.lang.level.lessonTypes.date.workTime.time": new Date(parsedDate),
     });
-    
+
     if (school) {
         const teacher = school.ESL.teacher.find(teacher =>
             teacher.data.teacherId === teacherId &&
@@ -29,7 +30,7 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
             )
         );
 
-        
+
 
         // Поиск соответствующего рабочего времени
         const dateObj = teacher.data.lang
@@ -44,10 +45,10 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
             );
 
 
-            
+
         // Декремент слотов
         const workTimeSlot = dateObj.workTime.find(workTime => workTime.time.getTime() === new Date(parsedDate).getTime());
-        
+
         // Если слот уже забронирован пользователем
         if (workTimeSlot.bookings.some(booking => booking.userName === username)) {
             bookedSlots.push(workTimeSlot.time);
@@ -62,7 +63,8 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
                 lessonTypes,
                 time: workTimeSlot.time,
                 teacherName,
-                students
+                students,
+                payment_status
             });
         }
 

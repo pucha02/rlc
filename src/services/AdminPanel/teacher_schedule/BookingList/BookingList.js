@@ -27,9 +27,8 @@ function BookingList() {
       if (response.status === 200) {
         setTeacherOrders(response.data);
 
-        // Collect dates for highlighting (first calendar)
         const datesToHighlight = response.data.flatMap(order =>
-          order.time.map(el => resetTime(new Date(el.time))) // Reset time to 00:00:00
+          order.time.filter(el => el.lang == lang && el.levelName == level && el.lessonTypes == lessonTypes && el.teacherId == teacherId).map(t => resetTime(new Date(t.time))) // Reset time to 00:00:00
         );
         setHighlightedDates(datesToHighlight);
       }
@@ -38,7 +37,6 @@ function BookingList() {
     }
   };
 
-  // Collect dates for the second calendar (booking level dates)
   const collectBookingDates = () => {
     if (booking?.level) {
       const dates = booking.level
@@ -66,6 +64,74 @@ function BookingList() {
       order.time.some(el => resetTime(new Date(el.time)).toISOString().split('T')[0] === selectedDateString)
     );
   };
+
+  // Handle payment status change
+  const handlePaymentStatusChange = async (orderId, teacherId, lang, levelName, lessonTypes, time, newStatus) => {
+    try {
+      // Обновляем локально
+      setTeacherOrders(prevOrders =>
+        prevOrders.map(order => {
+          if (order._id === orderId) {
+            return {
+              ...order,
+              time: order.time.map(timeEntry =>
+                timeEntry.time === time ? { ...timeEntry, payment_status: newStatus } : timeEntry
+              )
+            };
+          }
+          return order;
+        })
+      );
+
+      // Отправляем обновление на сервер
+      await axios.put(`http://localhost:5000/api/updatePaymentStatus`, {
+        orderId,
+        teacherId,
+        lang,
+        levelName,
+        lessonTypes,
+        time,
+        newStatus
+      });
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+    }
+  };
+
+  const handleDeleteTimeEntry = async (orderId, teacherId, lang, levelName, lessonTypes, time) => {
+    try {
+      // Выполняем запрос на удаление
+      await axios.delete(`http://localhost:5000/api/deleteTimeEntry`, {
+        data: { orderId, teacherId, lang, levelName, lessonTypes, time }
+      });
+
+      // Обновляем локальное состояние
+      setTeacherOrders(prevOrders =>
+        prevOrders.map(order => {
+          if (order._id === orderId) {
+            // Возвращаем новый массив time без удаленного элемента
+            return {
+              ...order,
+              time: order.time.filter(
+                timeEntry =>
+                  !(timeEntry.teacherId === teacherId &&
+                    timeEntry.lang === lang &&
+                    timeEntry.levelName === levelName &&
+                    timeEntry.lessonTypes === lessonTypes &&
+                    timeEntry.time === time)
+              )
+            };
+          }
+          return order;
+        })
+      );
+
+    } catch (error) {
+      console.error('Error deleting time entry:', error);
+    }
+  };
+
+
 
   const filterByBookingDate = () => {
     if (!selectedBookingDate) return booking?.level;
@@ -97,7 +163,7 @@ function BookingList() {
 
       <div className='teachersContent'>
         <div className='myBookings'>
-        <h3>Записані учні</h3>
+          <h3>Записані учні</h3>
           <div className="date-picker-container">
             <DatePicker
               selected={selectedDate}
@@ -110,30 +176,63 @@ function BookingList() {
             />
           </div>
 
-          {/* Display filtered or all orders */}
           <div className="booking-items">
             {filterByDate(teacherOrders).flatMap(order =>
               order.time.filter(el => {
                 const elDate = resetTime(new Date(el.time)).toISOString().split('T')[0];
                 const selectedDateString = selectedDate ? resetTime(selectedDate).toISOString().split('T')[0] : null;
-                return !selectedDate || elDate === selectedDateString; // Show all if no date is selected
-              })
-            ).map((el, id) => (
-              <div key={id}>
-                <p>{new Date(el.time).toLocaleDateString()} {new Date(el.time).toLocaleTimeString()}</p>
-                <div>
-                  {el.students.map((std, index) => (
-                    <div key={index}>
-                      <p>{std.name}</p>
-                    </div>
-                  ))}
+
+                return el.lang === lang
+                  && el.levelName === level
+                  && el.lessonTypes === lessonTypes
+                  && el.teacherId === teacherId
+                  && (!selectedDate || elDate === selectedDateString);
+              }).map((el, id) => (
+                <div key={id}>
+                  <div>
+                    {new Date(el.time).toLocaleDateString()}{' '}
+                    {`${String(new Date(el.time).getUTCHours()).padStart(2, '0')}:${String(new Date(el.time).getUTCMinutes()).padStart(2, '0')}:${String(new Date(el.time).getUTCSeconds()).padStart(2, '0')}`}
+                    <select
+                      value={el.payment_status}
+                      onChange={(e) => handlePaymentStatusChange(
+                        order._id,
+                        el.teacherId, // Добавьте teacherId
+                        el.lang, // Добавьте lang
+                        el.levelName, // Добавьте levelName
+                        el.lessonTypes, // Добавьте lessonTypes
+                        el.time, // Используйте el.time
+                        e.target.value // Новый статус
+                      )}
+                    >
+                      <option value="Не оплачено">Не оплачено</option>
+                      <option value="Оплачено">Оплачено</option>
+                    </select>
+                    <p>{el.payment_status}</p>
+                    <p>{el.teacherName}</p>
+                    <div onClick={() => handleDeleteTimeEntry(
+                      order._id,
+                      el.teacherId,
+                      el.lang,
+                      el.levelName,
+                      el.lessonTypes,
+                      el.time)}>
+                      УДАЛИТЬ</div>
+                  </div>
+                  <div>
+                    {el.students.map((std, index) => (
+                      <div key={index}>
+                        <p>{std.name}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
+
           </div>
+
         </div>
 
-        {/* Second Date Picker for filtering booking level dates */}
         <div className='myCalendar'>
           <h3>Мій графік</h3>
           <div className="date-picker-container">
@@ -143,12 +242,11 @@ function BookingList() {
               dateFormat="yyyy-MM-dd"
               isClearable
               placeholderText="Select a date to filter levels"
-              inline // Keep the calendar always open
-              highlightDates={highlightedBookingDates} // Highlight the dates in the second calendar
+              inline
+              highlightDates={highlightedBookingDates}
             />
           </div>
 
-          {/* Display filtered or all booking level dates */}
           <div className="booking-items">
             {filterByBookingDate()?.map((level) =>
               level.lessonTypes.map((type) =>
@@ -170,7 +268,7 @@ function BookingList() {
         </div>
       </div>
 
-    </div>
+    </div >
   );
 }
 

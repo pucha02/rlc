@@ -19,7 +19,7 @@ const itemProductSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, unique: true },
+    username: { type: String },
     email: { type: String, unique: true }, // Ensure uniqueness for user emails
     phone: { type: String },
     password: { type: String },
@@ -42,7 +42,8 @@ const orderSchema = new mongoose.Schema({
     lang: { type: String }, // Removed 'unique: true'
     levelName: { type: String }, // Removed 'unique: true'
     time: { type: Array, default: 'Pending' },
-    students: {type: Array}
+    students: {type: Array},
+    payment_status: {type: String}
 });
 
 

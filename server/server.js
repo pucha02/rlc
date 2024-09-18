@@ -5,11 +5,14 @@ const { findSchoolById, findTeacherById, findLanguageById, removeById, addToScho
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const crypto = require('crypto');
+const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { User, Order } = require('./models/Models');
 const SchoolModel = require('./models/SchoolModel')
+const nodemailer = require('nodemailer');
 
 const secret = 'jwt_secret';
 const app = express();
@@ -108,28 +111,56 @@ app.post('/api/register', async (req, res) => {
 
     try {
         if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
+            return res.status(400).json({ error: 'Email обязателен' });
         }
 
+        const existingUserphone = await User.findOne({ phone });
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'User with this email already exists' });
+            return res.status(400).json({ error: `Користувач за EMAIL: ${email}` });
+        }
+
+        if (existingUser && existingUserphone) {
+            return res.status(400).json({ error: 'Ви вже маєте аккаунт за цими даними' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, email, phone, password: hashedPassword });
+        const newUser = new User({
+            username,
+            email,
+            phone,
+            password: hashedPassword
+        });
         await newUser.save();
 
-        res.status(201).json({ message: 'User registered successfully' });
+        // Отправка письма пользователю
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail', // Вы можете использовать другой почтовый сервис
+            auth: {
+                user: 'mp848695@gmail.com', // Ваша почта
+                pass: 'popu wcxi egzg eycw'        // Пароль от вашей почты
+            }
+        });
+
+        const mailOptions = {
+            from: 'mp848695@gmail.com',
+            to: email,
+            subject: 'Регистрация успешна',
+            text: `Здравствуйте, ${username}! Вы успешно зарегистрировались на нашем сайте. Ваш логин ${email}. Ваш Пароль ${password}`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(201).json({ message: 'Пользователь успешно зарегистрирован, сообщение отправлено на почту' });
     } catch (error) {
-        console.error('Error registering user:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Ошибка при регистрации пользователя:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
 
 
 app.post('/api/registerorder', async (req, res) => {
-    let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count, students } = req.body;
+    let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count, students, payment_status } = req.body;
     let selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
     try {
         const bookedSlots = [];
@@ -141,14 +172,14 @@ app.post('/api/registerorder', async (req, res) => {
             for (let slot of selectedSlots) {
                 [teacherName, teacherId, lang, levelName, lessonTypes, time] = slot.split(', ');
                 const parsedDate = new Date(time);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students, payment_status);
 
             }
         } else if (selectedSlots.length <= 0) {
             let parsedTimes = JSON.parse(time);
             for (let t of parsedTimes) {
                 let parsedDate = parseUkrainianDate(t);
-                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students);
+                await processBooking(username, teacherId, lang, levelName, lessonTypes, parsedDate, SchoolModel, bookedSlots, unBookedSlots, order, teacherName, count, students, payment_status);
 
             }
 
@@ -185,10 +216,10 @@ app.post('/api/registerorder', async (req, res) => {
 
 
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
@@ -495,6 +526,207 @@ app.delete('/api/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req,
     } catch (err) {
         console.error(err.message);
         res.status(404).send(err.message);
+    }
+});
+function formatISOToCustom(inputDate) {
+    // Convert the input date string into a Date object
+    let date = new Date(inputDate);
+
+    // Extract the date components and build the string in the desired format
+    let formattedDate = date.toISOString().replace('Z', '+00:00');
+
+    return formattedDate;
+}
+
+app.put('/api/updatePaymentStatus', async (req, res) => {
+    const { orderId, teacherId, lang, levelName, lessonTypes, time, newStatus } = req.body;
+    console.log(orderId, teacherId, lang, levelName, lessonTypes, time, newStatus)
+    try {
+
+        const order = await Order.findOneAndUpdate(
+            {
+                _id: orderId,
+                'time.teacherId': teacherId,
+                'time.lang': lang,
+                'time.levelName': levelName,
+                'time.lessonTypes': lessonTypes,
+                'time.time': new Date(time)
+            },
+            {
+                $set: {
+                    'time.$.payment_status': newStatus
+                }
+            },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order or Time Entry not found' });
+        }
+
+        res.status(200).json({ message: 'Payment status updated successfully', order });
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+app.delete('/api/deleteTimeEntry', async (req, res) => {
+    const { orderId, teacherId, lang, levelName, lessonTypes, time } = req.body;
+
+    try {
+        const orders = await Order.find(
+            {
+                _id: orderId,
+            })
+            
+        const order = await Order.findOneAndUpdate(
+            {
+                _id: orderId,
+                'time.teacherId': teacherId,
+                'time.lang': lang,
+                'time.levelName': levelName,
+                'time.lessonTypes': lessonTypes,
+                'time.time': new Date(time)
+            },
+            {
+                $pull: {
+                    time: {
+                        teacherId,
+                        lang,
+                        levelName,
+                        lessonTypes,
+                        time: new Date(time)
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        const school = await SchoolModel.findOne({
+            "ESL.teacher.data.teacherId": teacherId,
+            "ESL.teacher.data.lang.lang": lang,
+            "ESL.teacher.data.lang.level.levelName": levelName,
+            "ESL.teacher.data.lang.level.lessonTypes.typeName": lessonTypes,
+            "ESL.teacher.data.lang.level.lessonTypes.date.workTime.time": new Date(time),
+        });
+
+        if (school) {
+            const teacher = school.ESL.teacher.find(teacher =>
+                teacher.data.teacherId === teacherId &&
+                teacher.data.lang.some(langItem =>
+                    langItem.lang === lang &&
+                    langItem.level.some(levelItem =>
+                        levelItem.levelName === levelName &&
+                        levelItem.lessonTypes.some(typeItem =>
+                            typeItem.typeName === lessonTypes &&
+                            typeItem.date.some(date =>
+                                date.workTime.some(workTime =>
+                                    workTime.time.getTime() === new Date(time).getTime()
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+
+            if (teacher) {
+                const dateObj = teacher.data.lang
+                    .find(langItem => langItem.lang === lang)
+                    .level
+                    .find(levelItem => levelItem.levelName === levelName)
+                    .lessonTypes
+                    .find(typeItem => typeItem.typeName === lessonTypes)
+                    .date
+                    .find(date =>
+                        date.workTime.some(workTime => workTime.time.getTime() === new Date(time).getTime())
+                    );
+
+                // Декремент слотов
+                const workTimeSlot = dateObj.workTime.find(workTime => workTime.time.getTime() === new Date(time).getTime());
+
+                if (workTimeSlot) {
+                    console.log(orders[0].students.length)
+                    workTimeSlot.slots = (workTimeSlot.slots || 0) + orders[0].students.length;
+                    console.log('Updated workTimeSlot.slots:', workTimeSlot.slots);
+
+                    // Сохраняем изменения в школе
+                    await school.save();
+                    console.log('Changes saved successfully');
+                } else {
+                    console.error('workTimeSlot not found');
+                }
+            } else {
+                console.error('Teacher not found in school');
+            }
+        }
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order or Time Entry not found' });
+        }
+
+        res.status(200).json({ message: 'Time entry deleted successfully', order });
+    } catch (error) {
+        console.error('Error deleting time entry:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+const publicKey = 'sandbox_i38312250017'; // Замените на ваш публичный ключ
+const privateKey = 'sandbox_FRDaasO0MmnhPbbp9U3d8DylKxr6ah8ppwkWKCcY'; // Замените на ваш приватный ключ
+
+// Endpoint для обработки результатов оплаты
+app.post('/api/handlepaymentresult', async (req, res) => {
+    const { data, signature } = req.body;
+
+    // Проверка подписи
+    const signString = crypto.createHash('sha1').update(privateKey + data + privateKey).digest('base64');
+
+    if (signature === signString) {
+        // Разбор данных
+        const paymentData = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
+
+        if (paymentData.status === 'success') {
+            res.status(200).send({ message: 'Оплата подтверждена' });
+        } else {
+            res.status(400).send({ message: 'Платеж не прошел' });
+        }
+    } else {
+        res.status(400).send({ message: 'Неверная подпись' });
+    }
+});
+
+// Endpoint для проверки статуса оплаты
+app.get('/api/checkpaymentstatus', async (req, res) => {
+    const { orderId } = req.query;
+    console.log(req.query.orderId)
+    const liqpayData = {
+        public_key: 'sandbox_i38312250017',
+        version: '3',
+        action: 'status',
+        order_id: orderId
+    };
+
+    const liqpayDataStr = Buffer.from(JSON.stringify(liqpayData)).toString('base64');
+    const signString = privateKey + liqpayDataStr + privateKey;
+    const liqpaySignature = crypto.createHash('sha1').update(signString).digest('base64');
+
+    try {
+        const response = await axios.post('https://www.liqpay.ua/api/request', {
+            data: liqpayDataStr,
+            signature: liqpaySignature
+        }, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        console.log(response.data)
+        const paymentStatus = response.data.status;
+        res.send(paymentStatus);
+    } catch (error) {
+        console.error('Ошибка при проверке статуса оплаты:', error);
+        res.status(500).send({ message: 'Ошибка при проверке оплаты' });
     }
 });
 

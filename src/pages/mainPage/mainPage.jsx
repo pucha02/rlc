@@ -1,8 +1,10 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backet from '../backet/backet';
-import Footer from '../../common/components/Footer/Footer';
 
+const ChoosePriority = lazy(() => import('../choosePriority/choosePriority'));
+const ChooseCount = lazy(() => import('../chooseCount/chooseCount'));
+const TeacherPage = lazy(() => import('../teacherPage/teacherPage'));
 const SchoolDetailWrapper = lazy(() => import('../../services/AdminPanel/data_school/SchoolDetail/SchoolDetailWrapper'));
 const AdminWrapper = lazy(() => import('../../services/AdminPanel/teacher_schedule/TeacherList/AdminWrapper'));
 const LanguagesWrapper = lazy(() => import('../chooseLanguage/LanguagesWrapper'));
@@ -31,8 +33,10 @@ const MainPage = () => {
         <Routes>
           <Route path="/:id" element={<LanguagesWrapper />} />
           <Route path="/course" element={<Courses />} />
+          <Route path="/count" element={<ChooseCount />} />
           <Route path="/date" element={<Date />} />
           <Route path="/lessoTypes" element={<LessonTypes />} />
+          <Route path="/priority" element={<ChoosePriority />} />
           <Route path="/teacher" element={<Teachers />} />
           <Route path="/final" element={<FinalPage />} />
           <Route path="/cabinet" element={<UserProfile />} />
@@ -45,9 +49,10 @@ const MainPage = () => {
           <Route path="/edit-booking/:id" element={<EditBookingForm />} />
           <Route path="/languageslist" element={<LanguagesList />} />
           <Route path="/levelList" element={<LevelList />} />
+          <Route path='/teacherPage' element={<TeacherPage />} />
         </Routes>
       </Suspense>
-      <Footer/>
+
     </Router>
   );
 };

@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { formatDateToUkrainian } from "../../common/utils/smallFn/convertDate";
+import generatePaymentURL from "../../common/utils/payments/generatePaymentUrl";
+import checkPaymentStatus from "../../common/utils/payments/checkPaymentStatus";
+import { Link } from 'react-router-dom';
+import CryptoJS from 'crypto-js';
+import LogoImg from '../../services/images/Group12.svg'
 import Modal from "../../common/components/modal/modal";
 import Login from "../regPages/Login";
 import Registration from "../regPages/Registration";
 import axios from "axios";
+import './finalPage.css'
+import '../chooseLanguage/language.css'
+import '../backet/backet.css'
 import fetchUserData from "../../common/utils/smallFn/getUserData";
+import UserIconImg from '../../services/images/personal-cab.svg'
+import PhoneIconImg from '../../services/images/phone.svg'
+import Footer from "../../common/components/Footer/Footer";
 
 const FinalPage = () => {
   const [username, setUsername] = useState('');
@@ -22,11 +33,14 @@ const FinalPage = () => {
   const [students, setStudents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-
-
+  const [paymentStatus, setPaymentStatus] = useState('Не оплачено');
+  const [orderId, setOrderId] = useState()
+  const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
+  const [autoFill, setAutoFill] = useState(false);
 
   const location = useLocation();
-  const { language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count } = location.state || {};
+  const { language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count, schoolId } = location.state || {};
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +61,6 @@ const FinalPage = () => {
       }
       setLevelName(level);
 
-      // Initialize student fields based on the count
       if (count) {
         const initialStudents = Array.from({ length: count }, () => ({ name: '', email: '', phone: '' }));
         setStudents(initialStudents);
@@ -71,167 +84,196 @@ const FinalPage = () => {
 
   const toggleModal = (open = !isModalOpen) => {
     setIsModalOpen(open);
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const response = await axios.post(
-          `http://localhost:5000/api/registerorder`,
-          { username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students }
-        );
 
-        if (response.status === 201) {
-          const bookedTimes = response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
-          setMessage(`Час забронирован: ${bookedTimes.join(', ')}`);
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          const bookedTimes = error.response.data.bookedSlots.map(slot => formatDateToUkrainian(slot));
-          const unBookedTimes = error.response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+    if (!token) {
+      toggleModal(true);
+      return;
+    }
 
-          let errorMessage = `Ви вже маєте запис на час: ${bookedTimes.join(', ')}`;
+    try {
+      const newOrderId = `order_${Math.random().toString(36).substr(2, 9)}`;
 
-          if (unBookedTimes.length > 0) {
-            errorMessage += `\nУспешно забронированы: ${unBookedTimes.join(', ')}`;
-          }
-          setErrorMessage(errorMessage);
-        } else {
-          setErrorMessage(error.response ? error.response.data.error : 'Произошла ошибка');
-        }
-      }
+      setOrderId(newOrderId); // Обновляем состояние с новым orderId
+      localStorage.setItem('OrderId', newOrderId)
+      // Используем локальную переменную newOrderId для генерации ссылки
+      const paymentUrl = generatePaymentURL(newOrderId);
+      window.open(paymentUrl, '_blank');
+    } catch (error) {
+      console.error('Ошибка при оплате или отправке данных', error);
+      setErrorMessage('Произошла ошибка при оплате');
+    }
+  };
+
+
+  const handleNext = () => {
+    if (currentStudentIndex < students.length - 1) {
+      setCurrentStudentIndex(currentStudentIndex + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStudentIndex > 0) {
+      setCurrentStudentIndex(currentStudentIndex - 1);
+    }
+  };
+
+  const handleAutoFillChange = (e) => {
+    setAutoFill(e.target.checked);
+
+    if (e.target.checked) {
+      // Если переключатель включен, автоматически заполняем первую форму
+      handleStudentChange(0, 'name', username);
+      handleStudentChange(0, 'email', email);
+      handleStudentChange(0, 'phone', phone);
     } else{
-      toggleModal(true)
+      handleStudentChange(0, 'name', '');
+      handleStudentChange(0, 'email', '');
+      handleStudentChange(0, 'phone', '');
     }
   };
-
-  const renderSelectedSlots = () => {
-    const selectedSlots = localStorage.getItem('selectedSlots');
-    if (selectedSlots) {
-      try {
-        const parsedSlots = JSON.parse(selectedSlots);
-        if (Array.isArray(parsedSlots)) {
-          return parsedSlots.map((slot, index) => {
-            const [student, teacherId, language, level, lessonType, date] = slot.split(', ');
-            const formattedDate = formatDateToUkrainian(date);
-
-            return (
-              <ul key={index}>
-                <li>
-                  <strong>Вчитель:</strong> {student}, <strong>Мова:</strong> {language}, <strong>Рівень:</strong> {level}, <strong>Тип уроку:</strong> {lessonType}, <strong>Дата:</strong> {formattedDate}
-                </li>
-              </ul>
-            );
-          });
-        } else {
-          return <p>No valid slots found.</p>;
-        }
-      } catch (error) {
-        console.error("Error parsing selectedSlots", error);
-        return <p>Error retrieving slots.</p>;
-      }
-    } else {
-      const selectedTimes = localStorage.getItem('selectedDates');
-      if (selectedTimes) {
-        try {
-          const parsedTimes = JSON.parse(selectedTimes);
-          if (Array.isArray(parsedTimes)) {
-            return parsedTimes.map((slot, index) => (
-              <ul key={index}>
-                <li>{slot}</li>
-              </ul>
-            ));
-          } else {
-            return <p>No valid times found.</p>;
-          }
-        } catch (error) {
-          console.error("Error parsing selectedTimes", error);
-          return <p>Error retrieving times.</p>;
-        }
-      }
-    }
-
-    return <p>No selected slots or times found.</p>;
-  };
-
 
   return (
-    <div>
-      <div className="auth-form-container">
-        <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
-          <div className="tabs">
-            <button
-              className={activeTab === 'login' ? 'active' : ''}
-              onClick={() => setActiveTab('login')}
-            >
-              Login
-            </button>
-            <button
-              className={activeTab === 'register' ? 'active' : ''}
-              onClick={() => setActiveTab('register')}
-            >
-              Register
-            </button>
-          </div>
-          {activeTab === 'login' ? <Login /> : <Registration />}
-        </Modal>
-        <h2>Оформлення</h2>
-        <form onSubmit={handleSubmit}>
-          <h3>Дані особистого кабінету</h3>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="phone"
-            placeholder="Phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-
-          {students.map((student, index) => (
-            <div key={index}>
-              <h4>Студент {index + 1}</h4>
-              <input
-                type="text"
-                placeholder="Ім'я студента"
-                value={student.name}
-                onChange={(e) => handleStudentChange(index, 'name', e.target.value)}
-              />
-              <input
-                type="email"
-                placeholder="Email студента"
-                value={student.email}
-                onChange={(e) => handleStudentChange(index, 'email', e.target.value)}
-              />
-              <input
-                type="phone"
-                placeholder="Телефон студента"
-                value={student.phone}
-                onChange={(e) => handleStudentChange(index, 'phone', e.target.value)}
-              />
-              {index === 0 && <button type="button" onClick={handleFillMe}>Я</button>}
+    <>
+      <div className="main final">
+        <div className="container">
+          <div className='logo'>
+            <div className='logo-items'>
+              <Link to={`/${schoolId}`}><img src={LogoImg} alt="Logo" /></Link>
             </div>
-          ))}
+          </div>
+          <div className="auth-form-container">
+            <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
+              <div className="tabs">
+                <button
+                  className={activeTab === 'login' ? 'active' : ''}
+                  onClick={() => setActiveTab('login')}
+                >
+                  Вхід
+                </button>
+                <button
+                  className={activeTab === 'register' ? 'active' : ''}
+                  onClick={() => setActiveTab('register')}
+                >
+                  Реєстрація
+                </button>
+              </div>
+              {activeTab === 'login' ? <Login /> : <Registration />}
+            </Modal>
+            <h2>Підтвердження запису</h2>
+            <form onSubmit={handleSubmit}>
+              {/* <div className="field">
+                <img src={UserIconImg} alt="" />
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div> */}
+              <div className="field">
+                <img src={UserIconImg} alt="" />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              {/* <div className="field">
+                <img src={PhoneIconImg} alt="" />
+                <input
+                  type="phone"
+                  placeholder="Phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div> */}
 
-          <button type="submit">Замовити</button>
-        </form>
-        {errorMessage && <p>{errorMessage}</p>}
-        {message && <p style={{ color: "green" }}>{message}</p>}
-      </div>
-      {teacherName && <div>{teacherName}{renderSelectedSlots()}</div>}
-      {selectedSlots && <div>{renderSelectedSlots()}</div>}
-    </div>
+{students.length > 0 && (
+            <>
+              <div key={currentStudentIndex}>
+                <h4>Студент {currentStudentIndex + 1}</h4>
+                {/* Чекбокс для автозаполнения */}
+                {currentStudentIndex === 0 && (
+                  <div className="auto-fill">
+                    <input
+                      type="checkbox"
+                      id="auto-fill"
+                      checked={autoFill}
+                      onChange={handleAutoFillChange}
+                    />
+                    <label htmlFor="auto-fill">Заполнить данными профиля</label>
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder="Ім'я студента"
+                  value={students[currentStudentIndex].name}
+                  onChange={(e) => handleStudentChange(currentStudentIndex, 'name', e.target.value)}
+                />
+                {/* <input
+                  type="email"
+                  placeholder="Email студента"
+                  value={students[currentStudentIndex].email}
+                  onChange={(e) => handleStudentChange(currentStudentIndex, 'email', e.target.value)}
+                /> */}
+                <input
+                  type="phone"
+                  placeholder="Телефон студента"
+                  value={students[currentStudentIndex].phone}
+                  onChange={(e) => handleStudentChange(currentStudentIndex, 'phone', e.target.value)}
+                />
+              </div>
+              <div className="actions">
+                {currentStudentIndex > 0 && <button type="button" onClick={handleBack}>Назад</button>}
+                {currentStudentIndex < students.length - 1 && <button type="button" onClick={handleNext}>Далі</button>}
+                {currentStudentIndex === students.length - 1 && <button type="submit">Оплатити</button>}
+              </div>
+            </>
+          )}
+
+              {/* <div className="actions">
+                <button type="button" className="fill-me-button" onClick={handleFillMe}>Заповнити моїми даними</button>
+                <button type="submit" className="submit-button">Оплатити</button>
+              </div> */}
+
+              <p>{message}</p>
+              <p className="error-message">{errorMessage}</p>
+
+              <div>
+                <h3>Статус платежу: {paymentStatus}</h3>
+                <button type="button" onClick={() => checkPaymentStatus({
+                  orderId: localStorage.getItem('OrderId'),
+                  username,
+                  email,
+                  phone,
+                  order,
+                  time,
+                  lang,
+                  levelName,
+                  teacherId,
+                  teacherName,
+                  lessonTypes,
+                  selectedSlots,
+                  count,
+                  students,
+                  setPaymentStatus,
+                  setMessage,
+                  setErrorMessage
+                })}>Перевірити статус оплати</button>
+              </div>
+            </form>
+          </div>
+        </div >
+      </div >
+      <Footer />
+    </>
   );
 };
 

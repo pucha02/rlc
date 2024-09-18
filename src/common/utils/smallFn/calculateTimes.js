@@ -146,7 +146,6 @@ const mergeWorkAndNonWorkTimes = (data, count) => {
                 bookingDAdded = true; // Set the flag to true after adding booking.d
             }
         });
-    
         
         const combinedWorkTime = calculateCombinedWorkTime(allWorkTimes);
         const nonWorkTime = calculateNonWorkTime(booking.nonWorkTime, combinedWorkTime);

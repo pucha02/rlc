@@ -3,12 +3,13 @@ import { useState } from "react";
 import Modal from "../../common/components/modal/modal"
 import Registration from "../regPages/Registration";
 import Login from "../regPages/Login";
-import PersonalCabImg from '../../services/images/personal-cab.png'
+import PersonalCabImg from '../../services/images/personal-cab.svg'
 import './backet.css'
 
 const Backet = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('login');
+
     const navigate = useNavigate();
 
     const toggleModal = (open = !isModalOpen) => {
@@ -34,13 +35,13 @@ const Backet = () => {
                             className={activeTab === 'login' ? 'active' : ''}
                             onClick={() => setActiveTab('login')}
                         >
-                            Login
+                            Вхід
                         </button>
                         <button
                             className={activeTab === 'register' ? 'active' : ''}
                             onClick={() => setActiveTab('register')}
                         >
-                            Register
+                            Реєстрація
                         </button>
                     </div>
                     {activeTab === 'login' ? <Login /> : <Registration />}

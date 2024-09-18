@@ -56,6 +56,14 @@ const TeacherDataSchema = new Schema({
     lang: [ESLLanguageSchema],
     teacherId: { type: String },
     teacherName: { type: String },
+    description: { type: String },
+    reviews: [
+        {
+            username: { type: String },
+            rating: { type: String },
+            text: { type: String }
+        }
+    ]
 });
 
 // Teacher Schema

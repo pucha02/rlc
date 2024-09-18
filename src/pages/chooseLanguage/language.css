@@ -81,6 +81,12 @@ body {
   transition: transform 0.3s ease;
 }
 
+.count-elements {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .language-item p {
   margin: 10px;
 }
@@ -147,7 +153,7 @@ body {
   font-weight: bold;
 }
 
-.teacher-link{
+.teacher-link {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -171,7 +177,7 @@ body {
 
 @media (max-width: 500px) {
   .main {
-    height: 69vh;
+    height: 75vh;
     width: 100%;
   }
 

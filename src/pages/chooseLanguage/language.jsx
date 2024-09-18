@@ -7,11 +7,12 @@ const Languages = ({ schoolId }) => {
   const [schoolData, setSchoolData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  console.log(schoolId)
+
   const fetchSchoolData = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
       setSchoolData(response.data);
+      localStorage.setItem('schoolId', schoolId)
     } catch (error) {
       setError(error.message);
     } finally {
@@ -21,6 +22,7 @@ const Languages = ({ schoolId }) => {
 
   useEffect(() => {
     const keys = Object.keys(localStorage);
+    localStorage.setItem('OrderId', [])
 
     keys.forEach(key => {
       if (key.startsWith('availableTimes_')) {

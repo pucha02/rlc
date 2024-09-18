@@ -32,7 +32,9 @@
 
 .tabs {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    width: 50%;
+    margin: 0 auto;
     gap: 1rem;
     margin-bottom: 1rem;
 }
@@ -40,19 +42,23 @@
 .tabs button {
     padding: 0.5rem 1rem;
     border: none;
-    background-color: #f1f1f1;
+    background-color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 18px;
+    font-weight: 700;
+    color: black;
 }
 
 .tabs button.active {
-    background-color: #007bff;
-    color: #fff;
+    border-bottom: 2px solid black;
+    border-radius: 0px;
+
 }
 
 .tabs button:hover {
-    background-color: #0056b3;
-    color: #fff;
+    background-color: #e6e8eb;
+
 }
 
 .personal-cabinet-btn {
@@ -81,8 +87,12 @@
         width: 100%;
 
     }
-    .personal-cabinet-btn{
+
+    .personal-cabinet-btn {
         position: absolute;
         right: 0;
+    }
+    .tabs{
+        width: 82%;
     }
 }

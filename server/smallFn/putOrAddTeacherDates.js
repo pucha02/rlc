@@ -8,7 +8,13 @@ const putOrAddTeacherDates = async (SchoolModel, schoolId, teacherId, req, res) 
     const lang = teacher.data.lang.find(l => l.lang === req.body.lang);
     if (!lang) return res.status(404).json({ message: 'Language not found' });
 
-    const level = lang.level.find(lv => lv.levelName === req.body.levelName.levelName || req.body.levelName);
+    let level
+
+    if (req.body.levelName) {
+        level = lang.level.find(lv => lv.levelName === req.body.levelName);
+    } else if (req.body.levelName.levelName) {
+        level = lang.level.find(lv => console.log(lv.levelName === req.body.levelName.levelName));
+    }
     if (!level) return res.status(404).json({ message: 'Level not found' });
 
     const lessonTypes = level.lessonTypes.find(lv => lv.typeName === req.body.lessonTypes);
@@ -103,7 +109,7 @@ const putOrAddTeacherDates = async (SchoolModel, schoolId, teacherId, req, res) 
     lessonTypes.date = lessonTypes.date.filter(date => date.d.getTime() !== newDate.d.getTime());
     // Add the new date to the teacher's dates array
     lessonTypes.date.push(newDate);
-
+    console.log(level)
     await school.save();
     res.status(200).json({ message: 'Schedule updated successfully' });
 

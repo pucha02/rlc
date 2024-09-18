@@ -14,6 +14,8 @@ const UserProfile = () => {
     const [selectedBookingDate, setSelectedBookingDate] = useState(null);
     const [highlightedBookingDates, setHighlightedBookingDates] = useState([]);
 
+    const schoolId = localStorage.getItem('schoolId')
+
     useEffect(() => {
         fetchUserData(setUser, axios, setOrders);
     }, []);
@@ -39,6 +41,7 @@ const UserProfile = () => {
 
     const fetchUserData = async (setUser, axios, setOrders) => {
         const token = localStorage.getItem('token');
+        console.log(token)
         if (token) {
             try {
                 const response = await axios.get('http://localhost:5000/api/me', {
@@ -186,7 +189,7 @@ const UserProfile = () => {
                 <p>Завантаження даних користувача...</p>
             )}
 
-            <Link to={'/'}>
+            <Link to={`/${schoolId}`}>
                 <button className="btn-logout" onClick={handleLogout}>Вийти</button>
             </Link>
         </div>

@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Calendar2 from "./testCalendarWithDatePickerDefault";
+import Footer from "../../common/components/Footer/Footer";
 
 const Date = () => {
 
@@ -26,10 +27,11 @@ const Date = () => {
     }
 
   };
+ 
 
   useEffect(() => {
     const keys = Object.keys(localStorage);
-
+    localStorage.setItem('OrderId', [])
     keys.forEach(key => {
       if (key.startsWith('availableTimes_')) {
         localStorage.removeItem(key);
@@ -41,16 +43,17 @@ const Date = () => {
     }
     else if (allTeachers) {
       localStorage.removeItem('selectedDates');
-      setFinal(lang[0])
+      setFinal(lang)
+      console.log(lang)
     }
 
   }, [])
   return (
-    <div>
-      <h1>Виберіть дату</h1>
-      <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes, schoolId: schoolId, count:count }}><button>Далі</button></Link>
-      <Calendar2 />
-
+    <div className="calendar">
+      <Calendar2 HandleFinish={HandleFinish} final={final} teacherId={teacherId} teacherName={teacherName} schoolId={schoolId} />
+      <div className="calendar-footer">
+        <Footer />
+      </div>
     </div>
   );
 };

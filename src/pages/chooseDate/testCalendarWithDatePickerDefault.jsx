@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from "react-router-dom";
 import { mergeWorkAndNonWorkTimes } from '../../common/utils/smallFn/calculateTimes';
 import { parseUkrainianDate } from '../../common/utils/smallFn/convertDate';
+import { Link } from 'react-router-dom';
 import './date.css'
 
 setOptions({
@@ -12,7 +13,7 @@ setOptions({
   themeVariant: 'light'
 });
 
-function Calendar2() {
+function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
   const [dates, setDates] = useState([]);
   const [multiple, setMultiple] = useState([]);
   const min = '2024-09-01T00:00';
@@ -29,12 +30,14 @@ function Calendar2() {
   const { lessonTypes } = location.state || {};
   const { count } = location.state || {};
 
+  console.log(count, lessonTypes, allTeachers, level )
+
   const handlePageLoadingDatetime = useCallback(() => {
     const invalid = [];
     const labels = [];
 
     date.forEach(booking => {
-      
+
       const d = new Date(booking.d);
       const localDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
       if (booking.allSlots > 0) {
@@ -50,7 +53,7 @@ function Calendar2() {
       }
     });
     console.log(invalid)
-    
+
 
     setDatetimeLabels(labels);
     setDatetimeInvalid(invalid);
@@ -67,7 +70,7 @@ function Calendar2() {
           });
           const workTimes = teacherDates[0].date.flatMap(time => time.workTime);
           setFreeSlot(workTimes)
-           
+
           setDate(mergeWorkAndNonWorkTimes(teacherDates[0].date, count));
 
 
@@ -80,6 +83,7 @@ function Calendar2() {
           const mergedTeachers = mergeWorkAndNonWorkTimes(allTeachers, count);
           setDate(mergedTeachers);
           setFreeSlot(workTimes)
+          console.log(workTimes)
         }
 
         const storedDates = localStorage.getItem('selectedDates');
@@ -154,27 +158,32 @@ function Calendar2() {
           onChange={handleChangeMultiple}
           multiple={true}
         />
-        <button onClick={handleSaveDates}>Сохранить выбранные даты и время</button>
+        <button onClick={handleSaveDates}>Обрати</button>
       </div>
       <div className="selected-dates">
-        <h3>Selected Dates & Times:</h3>
+        <h3>Обрані слоти:</h3>
         {Array.isArray(dates) && dates.length > 0 ? (
           <ul>
             {dates.map((date, index) => {
-              // Найдем соответствующий объект workTime по времени
-              const matchedItem = freeSlot.find(item => new Date(item.time).getTime() === new Date(parseUkrainianDate(date)).getTime());
+
+              const matchedItem = freeSlot.find(item => new Date(item.time).getTime() === new Date(parseUkrainianDate(date)).getTime() && item.slots > 0);
               return (
                 <li key={index}>
                   {date} {matchedItem && `(Вільних місць: ${matchedItem.slots})`}
-                  <button onClick={() => handleRemoveDate(date)}>Удалить</button>
+                  <button className='delete-btn' onClick={() => handleRemoveDate(date)}>Видалити</button>
                 </li>
               );
             })}
+
           </ul>
         ) : (
           <p>No dates selected.</p>
         )}
+        <div className='next-btn'>
+          <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes, schoolId: schoolId, count: count }}><button>Далі</button></Link>
+        </div>
       </div>
+      
     </Page>
 
   );

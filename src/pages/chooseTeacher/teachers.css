@@ -30,12 +30,14 @@
 
 .teacherImg {
   width: 40%;
+ 
 }
 
 .teacherImg img {
   display: flex;
   width: 115px;
   height: 115px;
+  border-radius: 10px;
 }
 
 .teachers-data {

@@ -1,11 +1,11 @@
 import { useLocation } from "react-router-dom";
-import LanguageSelection from "../../common/components/LanguageSelection/LanguageSelection";
 import { useEffect } from "react";
+import LanguageSelection from "../../common/components/LanguageSelection/LanguageSelection";
 
 
-const Courses = () => {
+const ChooseCount = () => {
 
-    useEffect(() => {
+    useEffect(()=>{
         localStorage.setItem('OrderId', [])
     }, [])
 
@@ -13,17 +13,20 @@ const Courses = () => {
     const { level } = location.state || {};
     const { language } = location.state || {};
     const { schoolId } = location.state || {};
-    console.log(schoolId)
+    const { lessonTypes } = location.state || {};
+
+
     return (
         <LanguageSelection
-            title="Оберіть рівень"
-            data={level}
-            type="level"
+            title="Оберіть кількість учнів"
+            type="count"
             language={language}
+            level={level}
             schoolId={schoolId}
+            lessonTypes={lessonTypes}
         />
 
     );
 };
 
-export default Courses;
+export default ChooseCount;
