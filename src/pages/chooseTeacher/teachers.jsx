@@ -46,11 +46,11 @@ const Teachers = () => {
   useEffect(() => {
     const keys = Object.keys(localStorage);
     localStorage.setItem('OrderId', [])
-    keys.forEach(key => {
-      if (key.startsWith('availableTimes_')) {
-        localStorage.removeItem(key);
-      }
-    });
+    // keys.forEach(key => {
+    //   if (key.startsWith('availableTimes_')) {
+    //     localStorage.removeItem(key);
+    //   }
+    // });
     fetchSchoolData(schoolId, level, selectedTimes, language, lang_from_general_cal, lessonTypes, setLang, setAllTeachers, setSchoolData, setError, setLoading);
   }, []);
 
@@ -108,40 +108,43 @@ const Teachers = () => {
                               count: count ? count : counts
                             }} className="select-btn">
                               <div><p>Обрати</p></div>
-                            </Link> : <div className="select-btn"><p>Оберіть час</p></div>
+                            </Link> : <div className="select-btn">
+                              <div className="teacher-times">
+                                {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length > 0 ? (
+                                  <>
+                                    <ul className="teachers-times">
+                                      {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).map((time, idx) => (
+                                        <li
+                                          key={idx}
+                                          onClick={() => selectTeacherAndDates(
+                                            teacher,
+                                            lang,
+                                            level,
+                                            lessonTypes,
+                                            time,
+                                            setSelectTimes,
+                                            selectTimes
+                                          )}
+                                          style={{
+                                            cursor: 'pointer',
+                                            backgroundColor: selectTimes.includes(`${teacher.data.teacherName}, ${teacher.data.teacherId}, ${lang}, ${level}, ${lessonTypes}, ${time}`) ? '#205C48' : '#D9D9D9',
+                                            color: selectTimes.includes(`${teacher.data.teacherName}, ${teacher.data.teacherId}, ${lang}, ${level}, ${lessonTypes}, ${time}`) ? 'white' : '#205C48'
+                                          }}
+                                        >
+                                          {formatDateToUkrainian(time)}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </>
+                                ) : null}
+                              </div>
+                            </div>
                           }
 
                         </div>
                       </div>
                       <hr />
-                      <div className="teacher-times">
-                        {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).length > 0 ? (
-                          <>
-                            <ul>
-                              {getTeacherAvailableTimes(teacher, selectedTimes, lang_from_general_cal, level, parseUkrainianDate).map((time, idx) => (
-                                <li
-                                  key={idx}
-                                  onClick={() => selectTeacherAndDates(
-                                    teacher,
-                                    lang,
-                                    level,
-                                    lessonTypes,
-                                    time,
-                                    setSelectTimes,
-                                    selectTimes
-                                  )}
-                                  style={{
-                                    cursor: 'pointer',
-                                    backgroundColor: selectTimes.includes(`${teacher.data.teacherName}, ${teacher.data.teacherId}, ${lang}, ${level}, ${lessonTypes}, ${time}`) ? 'lightgreen' : 'grey'
-                                  }}
-                                >
-                                  {formatDateToUkrainian(time)}
-                                </li>
-                              ))}
-                            </ul>
-                          </>
-                        ) : null}
-                      </div>
+
                     </div>
                   ))}
 

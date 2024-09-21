@@ -1,3 +1,4 @@
+const { email } = require('react-admin');
 const { parseUkrainianDate, formatDateToUkrainian } = require('./convertDate')
 const { v4: uuidv4 } = require('uuid');
 
@@ -30,8 +31,6 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
             )
         );
 
-
-
         // Поиск соответствующего рабочего времени
         const dateObj = teacher.data.lang
             .find(langItem => langItem.lang === lang)
@@ -50,10 +49,10 @@ const processBooking = async (username, teacherId, lang, levelName, lessonTypes,
         const workTimeSlot = dateObj.workTime.find(workTime => workTime.time.getTime() === new Date(parsedDate).getTime());
 
         // Если слот уже забронирован пользователем
-        if (workTimeSlot.bookings.some(booking => booking.userName === username)) {
+        if (workTimeSlot.bookings.some(booking => booking.userName === email)) {
             bookedSlots.push(workTimeSlot.time);
         } else {
-            workTimeSlot.bookings.push({ userName: username });
+            workTimeSlot.bookings.push({ userName: email });
             workTimeSlot.slots = (workTimeSlot.slots || 0) - count;
             unBookedSlots.push(workTimeSlot.time);
             order.push({

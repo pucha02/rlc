@@ -28,7 +28,8 @@ function parseUkrainianDate(dateStr) {
    
     const monthEng = translateUkrainianMonthToEnglish(monthUkr);
 
-    const formattedDateStr = `${monthEng} ${day}, ${year} ${time3}.000+00:00`;
+    // const formattedDateStr = `${monthEng} ${day}, ${year} ${time3}.000+00:00`;
+    const formattedDateStr = `${monthEng} ${day}, ${year} ${time3}`;
 
     return new Date(formattedDateStr).toUTCString();
 }

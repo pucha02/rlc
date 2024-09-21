@@ -65,6 +65,44 @@
   margin-top: 5px;
 }
 
+.teachers-times{
+  height: 130px;
+  overflow-y: scroll;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+}
+
+.teachers-times::-webkit-scrollbar, .teachers-data::-webkit-scrollbar  {
+  width: 8px; /* Ширина скроллбара */
+}
+
+/* Стилизация ползунка (бегунка) */
+.teachers-times::-webkit-scrollbar-thumb, .teachers-data::-webkit-scrollbar-thumb {
+  background-color: #4D7D6D; /* Цвет ползунка */
+  border-radius: 10px; /* Округление ползунка */
+  
+}
+
+/* При наведении на ползунок */
+.teachers-times::-webkit-scrollbar-thumb:hover, .teachers-data::-webkit-scrollbar-thumb:hover {
+  background-color: #558c79; /* Цвет ползунка при наведении */
+ 
+}
+
+/* Стилизация области скроллбара (канала) */
+.teachers-times::-webkit-scrollbar-track {
+  background: #ffffff; /* Цвет фона канала */
+  border-radius: 10px;
+  margin-left: 2px;
+}
+
+.teachers-times li{
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
 @media (max-width: 500px) {
   .name-and-btn {
     display: block;
@@ -76,6 +114,20 @@
 
   .selectDateAndCount {
     width: 80%;
+  }
+
+  .select-btn{
+    width: max-content;
+    margin: 0 auto;
+  }
+
+  .teachers-times li{
+    padding: 7px;
+    font-size: 12px;
+  }
+
+  .teachers-times::-webkit-scrollbar {
+    width: 4px; /* Ширина скроллбара */
   }
 
 }

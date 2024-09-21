@@ -126,7 +126,8 @@ const UserProfile = () => {
                                             lang: slot.lang,
                                             levelName: slot.levelName,
                                             lessonTypes: slot.lessonTypes,
-                                            time: formatDateToUkrainian(slot.time)
+                                            time: formatDateToUkrainian(slot.time),
+                                            payment_status: slot.payment_status
                                         }));
                                     } catch (e) {
                                         console.error('Invalid time format:', order.time);
@@ -143,7 +144,7 @@ const UserProfile = () => {
 
                                     // Условие для предотвращения рендера пустого заказа
                                     if (filteredSlots.length === 0) return null;
-
+                                        console.log(filteredSlots)
                                     return (
                                         <li key={index}>
                                             <strong>Мова:</strong> {order.lang} <br />
@@ -158,7 +159,7 @@ const UserProfile = () => {
                                                         <div><strong>Рівень:</strong> {slot.levelName}</div>
                                                         <div><strong>Тип уроку:</strong> {slot.lessonTypes}</div>
                                                         <div><strong>Час:</strong> {slot.time}</div>
-
+                                                        <div><strong>Статус оплати:</strong> {slot.payment_status}</div>
                                                         {order.students.length > 0 && (
                                                             <div style={{ marginTop: '10px' }}>
                                                                 <strong>Студенти:</strong>
@@ -168,6 +169,7 @@ const UserProfile = () => {
                                                                             <div>Ім'я: {student.name}</div>
                                                                             <div>Email: {student.email}</div>
                                                                             <div>Телефон: {student.phone}</div>
+                                                                            
                                                                         </li>
                                                                     ))}
                                                                 </ul>

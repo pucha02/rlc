@@ -33,8 +33,7 @@ const fetchSchoolData = async (schoolId, level, selectedTimes, language, lang_fr
                   parsedSelectedTimes.some(selectedDate =>
                     lessonTypeObj.date.some(dateObj =>
                       dateObj.workTime.some(workTimeSlot =>
-                        new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
-                      )
+                        new Date(new Date(workTimeSlot.time).getTime() + new Date(workTimeSlot.time).getTimezoneOffset() * 60000).getTime() === new Date(new Date(parseUkrainianDate(selectedDate))).getTime() && workTimeSlot.slots > 0                      )
                     )
                   )
                 )

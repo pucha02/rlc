@@ -36,8 +36,7 @@ const getTeacherAvailableTimes = (teacher, selectedTimes, lang_from_general_cal,
     .flatMap(dateObj => dateObj.workTime)
     .filter(workTimeSlot =>
       parsedSelectedTimes.some(selectedDate =>
-        new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
-      )
+        new Date(new Date(workTimeSlot.time).getTime() + new Date(workTimeSlot.time).getTimezoneOffset() * 60000).getTime() === new Date(new Date(parseUkrainianDate(selectedDate))).getTime() && workTimeSlot.slots > 0      )
     );
   console.log(availableTimes)
   localStorage.setItem(`availableTimes_${teacher.data.teacherId}`, JSON.stringify(availableTimes));

@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { formatDateToUkrainian } from "../../common/utils/smallFn/convertDate";
+import renderSelectedSlots from "../../common/utils/smallFn/getResultData";
 import generatePaymentURL from "../../common/utils/payments/generatePaymentUrl";
 import checkPaymentStatus from "../../common/utils/payments/checkPaymentStatus";
+import orderRequest from "../../common/utils/payments/orderRequest";
 import { Link } from 'react-router-dom';
 import CryptoJS from 'crypto-js';
 import LogoImg from '../../services/images/Group12.svg'
@@ -33,14 +35,79 @@ const FinalPage = () => {
   const [students, setStudents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [paymentStatus, setPaymentStatus] = useState('Не оплачено');
+  const [activeTabResult, setActiveTabResult] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [orderId, setOrderId] = useState()
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
   const [autoFill, setAutoFill] = useState(false);
+  const [stud, setStud] = useState(false)
 
   const location = useLocation();
   const { language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count, schoolId } = location.state || {};
 
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/checkpaymentstatus', {
+          params: { orderId }
+        });
+        
+        console.log(response.data)
+        // Останавливаем проверку, если оплата прошла успешно
+        if (response.data === 'success') {
+          try {
+            setPaymentStatus('Оплачено');
+            setMessage('Оплата успешно подтверждена.');
+
+            // Отправляем данные заказа на сервер
+            const resp = await axios.post('http://localhost:5000/api/registerorder', {
+              username,
+              email,
+              phone,
+              order,
+              time,
+              lang,
+              levelName,
+              teacherId,
+              teacherName,
+              lessonTypes,
+              selectedSlots,
+              count,
+              students,
+              payment_status: 'Оплачено'
+            });
+
+            if (resp.status === 201) {
+              // Если время было успешно забронировано
+              const bookedTimes = resp.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+              setMessage(`Час забронирован: ${bookedTimes.join(', ')}`);
+            }
+          } catch (error) {
+            if (error.response && error.response.status === 400) {
+              const bookedTimes = error.response.data.bookedSlots.map(slot => formatDateToUkrainian(slot));
+              const unBookedTimes = error.response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+
+              let errorMessage = `Ви вже маєте запис на час: ${bookedTimes.join(', ')}`;
+
+              if (unBookedTimes.length > 0) {
+                errorMessage += `\nУспешно забронированы: ${unBookedTimes.join(', ')}`;
+              }
+
+              setErrorMessage(errorMessage);
+            } else {
+              setErrorMessage(error.response ? error.response.data.error : 'Произошла ошибка');
+            }
+          }
+          clearInterval(intervalId);
+        }
+      } catch (error) {
+        console.error("Ошибка проверки статуса оплаты", error);
+      }
+    }, 5000); // Проверяем каждые 5 секунд
+
+    return () => clearInterval(intervalId);  // Чистим интервал при размонтировании компонента
+  }, [orderId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +133,6 @@ const FinalPage = () => {
         setStudents(initialStudents);
       }
     };
-
     fetchData();
   }, [count]);
 
@@ -84,17 +150,22 @@ const FinalPage = () => {
 
   const toggleModal = (open = !isModalOpen) => {
     setIsModalOpen(open);
+    setActiveTabResult(open)
+  };
+
+  const toggleModalResult = (open = !activeTabResult) => {
+    setActiveTabResult(open)
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
+    // const token = localStorage.getItem('token');
 
-    if (!token) {
-      toggleModal(true);
-      return;
-    }
+    // if (!token) {
+    //   toggleModal(true);
+    //   return;
+    // }
 
     try {
       const newOrderId = `order_${Math.random().toString(36).substr(2, 9)}`;
@@ -109,7 +180,6 @@ const FinalPage = () => {
       setErrorMessage('Произошла ошибка при оплате');
     }
   };
-
 
   const handleNext = () => {
     if (currentStudentIndex < students.length - 1) {
@@ -131,12 +201,13 @@ const FinalPage = () => {
       handleStudentChange(0, 'name', username);
       handleStudentChange(0, 'email', email);
       handleStudentChange(0, 'phone', phone);
-    } else{
+    } else {
       handleStudentChange(0, 'name', '');
       handleStudentChange(0, 'email', '');
       handleStudentChange(0, 'phone', '');
     }
   };
+
 
   return (
     <>
@@ -148,7 +219,7 @@ const FinalPage = () => {
             </div>
           </div>
           <div className="auth-form-container">
-            <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
+            <Modal className={'modal-content'} isOpen={isModalOpen} onClose={() => toggleModal(false)}>
               <div className="tabs">
                 <button
                   className={activeTab === 'login' ? 'active' : ''}
@@ -195,79 +266,93 @@ const FinalPage = () => {
                 />
               </div> */}
 
-{students.length > 0 && (
-            <>
-              <div key={currentStudentIndex}>
-                <h4>Студент {currentStudentIndex + 1}</h4>
-                {/* Чекбокс для автозаполнения */}
-                {currentStudentIndex === 0 && (
-                  <div className="auto-fill">
+              {students.length > 0 && (
+                <>
+                  <div key={currentStudentIndex}>
+                    <h4>Студент {currentStudentIndex + 1}</h4>
+                    {/* Чекбокс для автозаполнения */}
+                    {/* {currentStudentIndex === 0 && (
+                      <div className="auto-fill">
+                        <input
+                          type="checkbox"
+                          id="auto-fill"
+                          checked={autoFill}
+                          onChange={handleAutoFillChange}
+                        />
+                        <label htmlFor="auto-fill">Заполнить данными профиля</label>
+                      </div>
+                    )} */}
                     <input
-                      type="checkbox"
-                      id="auto-fill"
-                      checked={autoFill}
-                      onChange={handleAutoFillChange}
+                      type="text"
+                      placeholder="Ім'я студента"
+                      value={students[currentStudentIndex].name}
+                      onChange={(e) => handleStudentChange(currentStudentIndex, 'name', e.target.value)}
                     />
-                    <label htmlFor="auto-fill">Заполнить данными профиля</label>
-                  </div>
-                )}
-                <input
-                  type="text"
-                  placeholder="Ім'я студента"
-                  value={students[currentStudentIndex].name}
-                  onChange={(e) => handleStudentChange(currentStudentIndex, 'name', e.target.value)}
-                />
-                {/* <input
+                    {/* <input
                   type="email"
                   placeholder="Email студента"
                   value={students[currentStudentIndex].email}
                   onChange={(e) => handleStudentChange(currentStudentIndex, 'email', e.target.value)}
                 /> */}
-                <input
-                  type="phone"
-                  placeholder="Телефон студента"
-                  value={students[currentStudentIndex].phone}
-                  onChange={(e) => handleStudentChange(currentStudentIndex, 'phone', e.target.value)}
-                />
-              </div>
-              <div className="actions">
-                {currentStudentIndex > 0 && <button type="button" onClick={handleBack}>Назад</button>}
-                {currentStudentIndex < students.length - 1 && <button type="button" onClick={handleNext}>Далі</button>}
-                {currentStudentIndex === students.length - 1 && <button type="submit">Оплатити</button>}
-              </div>
-            </>
-          )}
+                    <input
+                      type="phone"
+                      placeholder="Телефон студента"
+                      value={students[currentStudentIndex].phone}
+                      onChange={(e) => handleStudentChange(currentStudentIndex, 'phone', e.target.value)}
+                    />
+                  </div>
+                  <div className="actions">
+                    {currentStudentIndex > 0 && <button type="button" onClick={handleBack}>Назад</button>}
+                    {currentStudentIndex < students.length - 1 && <button type="button" onClick={handleNext}>Далі</button>}
+                    {currentStudentIndex === students.length - 1 && <button type="button" onClick={() => toggleModalResult(true)}>Оплатити</button>}
+                  </div>
+                </>
+              )}
+              <div>
+                <Modal className={'modal-content-result'} isOpen={activeTabResult} onClose={() => toggleModalResult(false)}>
+                  <div >
+                    <div className="">
+                      <h2>Замовлення</h2>
+                      <div className="studentsList-btn" onClick={() => setStud(true)}>Учні</div>
+                      {stud && (
+                        <div className="studentsList" >
+                          <span className="modal-close" onClick={() => setStud(false)}>&times;</span>
+                          <div className="triangle"></div>
+                          <div className="contents-block">
+                            {students.map((student, index) => (
+                              <div className="content" key={index}>
+                                <p>{student.name}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-              {/* <div className="actions">
-                <button type="button" className="fill-me-button" onClick={handleFillMe}>Заповнити моїми даними</button>
-                <button type="submit" className="submit-button">Оплатити</button>
-              </div> */}
-
+                      {teacherName && <div>{teacherName}{renderSelectedSlots()}</div>}
+                      {selectedSlots && <div>{renderSelectedSlots()}</div>}
+                    </div>
+                    <div className="pay-btns">
+                      <button type="submit">Оплатити</button>
+                      <button type="button" onClick={() => {
+                        orderRequest({
+                          username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students, setMessage, setErrorMessage
+                        });
+                        toggleModalResult(false); // Вызов дополнительной функции
+                      }}>Зробити заявку</button>
+                    </div>
+                    <div className="status-pay">
+                      <h3>{paymentStatus && <div>Статус платежу: {paymentStatus}</div>}</h3>
+                      {/* <button type="button" onClick={() => checkPaymentStatus({
+                        orderId: localStorage.getItem('OrderId'), username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students, setPaymentStatus, setMessage, setErrorMessage
+                      })}>Перевірити статус оплати</button> */}
+                    </div>
+                  </div>
+                </Modal>
+              </div>
               <p>{message}</p>
               <p className="error-message">{errorMessage}</p>
 
-              <div>
-                <h3>Статус платежу: {paymentStatus}</h3>
-                <button type="button" onClick={() => checkPaymentStatus({
-                  orderId: localStorage.getItem('OrderId'),
-                  username,
-                  email,
-                  phone,
-                  order,
-                  time,
-                  lang,
-                  levelName,
-                  teacherId,
-                  teacherName,
-                  lessonTypes,
-                  selectedSlots,
-                  count,
-                  students,
-                  setPaymentStatus,
-                  setMessage,
-                  setErrorMessage
-                })}>Перевірити статус оплати</button>
-              </div>
+
             </form>
           </div>
         </div >

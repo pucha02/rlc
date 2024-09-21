@@ -55,10 +55,26 @@ body {
 
 .school-data {
   overflow-y: auto;
-  padding: 0 20px 0 20px;
+  padding: 10px 20px 0 20px;
   margin: 0 auto;
   width: 40%;
   height: 51vh;
+}
+
+.school-data::-webkit-scrollbar {
+  width: 8px;
+  /* Ширина скроллбара */
+}
+
+.school-data::-webkit-scrollbar-thumb {
+  background-color: #4D7D6D; /* Цвет ползунка */
+  border-radius: 10px;
+  /* Ширина скроллбара */
+}
+
+.school-data::-webkit-scrollbar-thumb:hover {
+  background-color: #558c79;
+  /* Ширина скроллбара */
 }
 
 .school-data-title {
@@ -157,6 +173,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  white-space: nowrap;
+  width: 30%;
+}
+
+.teacher-link a {
+  text-decoration: none;
+  color: black;
 }
 
 .select-date-link button {
@@ -209,5 +232,9 @@ body {
 
   .logo {
     top: -30px;
+  }
+
+  .teacher-link {
+    width: 100%;
   }
 }

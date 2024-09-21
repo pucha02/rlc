@@ -13,6 +13,26 @@
 
 }
 
+.auth-form-container::-webkit-scrollbar {
+    width: 8px;
+    /* Ширина скроллбара */
+}
+
+.auth-form-container::-webkit-scrollbar-thumb {
+    background-color: #4D7D6D;
+    /* Цвет ползунка */
+    border-radius: 10px;
+    /* Округление ползунка */
+
+}
+
+.auth-form-container::-webkit-scrollbar-thumb:hover {
+    background-color: #558c79;
+    /* Цвет ползунка при наведении */
+
+}
+
+
 .auth-form-container h2 {
     font-size: 1.8em;
     margin-bottom: 20px;

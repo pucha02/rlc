@@ -30,7 +30,7 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
   const { lessonTypes } = location.state || {};
   const { count } = location.state || {};
 
-  console.log(count, lessonTypes, allTeachers, level )
+  console.log(count, lessonTypes, allTeachers, level)
 
   const handlePageLoadingDatetime = useCallback(() => {
     const invalid = [];
@@ -166,10 +166,13 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
           <ul>
             {dates.map((date, index) => {
 
-              const matchedItem = freeSlot.find(item => new Date(item.time).getTime() === new Date(parseUkrainianDate(date)).getTime() && item.slots > 0);
-              return (
+              const matchedItems = freeSlot.filter(item =>
+                new Date(new Date(item.time).getTime() + new Date(item.time).getTimezoneOffset() * 60000).getTime() === new Date(new Date(parseUkrainianDate(date))).getTime() && item.slots > 0
+              );
+
+              const totalSlots = matchedItems.reduce((sum, item) => sum + item.slots, 0); return (
                 <li key={index}>
-                  {date} {matchedItem && `(Вільних місць: ${matchedItem.slots})`}
+                  {date} {totalSlots && `(Вільних місць: ${totalSlots})`}
                   <button className='delete-btn' onClick={() => handleRemoveDate(date)}>Видалити</button>
                 </li>
               );
@@ -183,7 +186,7 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
           <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes, schoolId: schoolId, count: count }}><button>Далі</button></Link>
         </div>
       </div>
-      
+
     </Page>
 
   );
