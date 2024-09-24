@@ -21,7 +21,7 @@ export const checkPaymentStatus = async ({
   setErrorMessage
 }) => {
   try {
-    const response = await axios.get('http://localhost:5000/api/checkpaymentstatus', {
+    const response = await axios.get('http://13.60.221.226/api/checkpaymentstatus', {
       params: { orderId }
     });
 
@@ -31,7 +31,7 @@ export const checkPaymentStatus = async ({
         setMessage('Оплата успешно подтверждена.');
 
         // Отправляем данные заказа на сервер
-        const resp = await axios.post('http://localhost:5000/api/registerorder', {
+        const resp = await axios.post('http://13.60.221.226/api/registerorder', {
           username,
           email,
           phone,

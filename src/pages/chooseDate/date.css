@@ -1,3 +1,7 @@
+body {
+  background-color: #f4f4f4;
+}
+
 .md-calendar-booking {
   height: 75vh;
   /* Задает высоту 75% от видимой области */
@@ -16,12 +20,29 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-color: #fff;
+}
+
+.mbsc-ios.mbsc-page {
+  background-color: #fff;
 }
 
 .mbsc-form-group button {
   border-radius: 10px;
   margin-top: 20px;
+  padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  height: 56px;
+  font-weight: 600;
+  font-size: 15px;
 }
+
+.mbsc-form-group button:hover{
+  background-color: #54947e;
+}
+
+
 
 .booking-datetime {
   flex-grow: 1;
@@ -31,8 +52,7 @@
 
 .selected-dates {
   position: relative;
-  border: 1px solid;
-  width: 33%;
+  width: 42%;
 }
 
 .selected-dates ul {
@@ -56,19 +76,23 @@ button {
   margin: 0 auto;
 }
 
-button:hover {
+
+.next-btn button:hover {
   background-color: #54947e;
 }
 
 .delete-btn {
-  background-color: #4D7D6D;
-  color: white;
+  background: none;
   border: none;
-  height: 30px;
+  color: red;
+  font-size: 24px;
+  /* Размер крестика */
   cursor: pointer;
-  margin: 0 auto;
-  margin-right: 20px;
+}
 
+.delete-btn:hover {
+  color: darkred;
+  /* Цвет крестика при наведении */
 }
 
 .mbsc-ios.mbsc-timegrid-item.mbsc-selected {
@@ -80,7 +104,7 @@ button:hover {
 
 .mbsc-ios.mbsc-selected .mbsc-calendar-cell-text {
   background: #4D7D6D;
-  border-color: rgb(0, 255, 34);
+  border-color: #4D7D6D;
   color: #fff;
 }
 
@@ -93,7 +117,6 @@ button:hover {
   border-color: #ccc;
   color: #000;
   margin: 0 auto;
-  width: 81%;
 }
 
 .mbsc-form-group-title {
@@ -104,51 +127,114 @@ button:hover {
 .next-btn {
   position: absolute;
   bottom: 25px;
+  left: 50%;
+  /* Центрирование по горизонтали */
+  transform: translateX(-50%);
+  /* Сдвиг на половину ширины кнопки для точного центрирования */
   width: 100px;
-  left: 130px;
-
 }
+
 
 .next-btn button {
   border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  height: 45px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.mbsc-page h3 {
+  margin-top: 50px;
 }
 
 
 .booking-datetime .mbsc-selected {
-  background-color: #007bff; /* Цвет фона для выделенных дат */
-  color: #fff; /* Цвет текста для выделенных дат */
+  background-color: #007bff;
+  /* Цвет фона для выделенных дат */
+  color: #fff;
+  /* Цвет текста для выделенных дат */
 }
 
 .booking-datetime .mbsc-selected .mbsc-timegrid-cell {
-  background-color: #28a745 !important; /* Цвет фона для выбранного времени */
-  color: #fff !important; /* Цвет текста для выбранного времени */
+  background-color: #28a745 !important;
+  /* Цвет фона для выбранного времени */
+  color: #fff !important;
+  /* Цвет текста для выбранного времени */
 }
 
 
-@media (max-width: 500px) {
+@media (max-width: 800px) {
+  .mbsc-ios.mbsc-datepicker-inline {
+    background: #fff;
+    border-color: #ccc;
+    color: #000;
+    margin: 0 auto;
+    width: 81%;
+  }
+
   .calendar {
     width: 100%;
   }
-  .md-calendar-booking{
+
+  .md-calendar-booking {
     display: block;
   }
-  .selected-dates{
-    
+
+  .selected-dates {
+    padding-bottom: 10px;
     width: 100%;
+    background-color: #fff;
+    border-top: 0.8px solid #205C48CC;
+
   }
-  .mbsc-form-group{
+
+  .mbsc-form-group {
     margin: 0;
     margin-bottom: 10px;
   }
-  .mbsc-form-group button{
-    margin-top: 0;
+
+  .mbsc-form-group button {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    width: 165px;
+    height: 45px;
   }
-  .calendar-footer{
+
+  .calendar-footer {
     display: none;
   }
-  .next-btn{
-    position:unset;
+
+  .next-btn {
+    position: unset;
     margin: 0 auto;
     margin-bottom: 10px;
+    width: 165px;
+    transform: none;
+  }
+
+  .selected-dates ul {
+    margin: 0;
+    padding: 30px;
+    padding-top: 0;
+  }
+
+  .mbsc-page h3 {
+    margin-top: 35px;
+    margin-bottom: 27px;
+  }
+
+  .selected-dates li {
+    font-size: 12px;
+    width: 300px;
+    margin: 0 auto;
+  }
+
+  .delete-btn {
+    padding-right: 0;
+  }
+
+  .delete-btn {
+    margin-right: 0;
   }
 }

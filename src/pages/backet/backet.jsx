@@ -29,7 +29,7 @@ const Backet = () => {
         <div className="backet-container">
             <div className="reg-btn-container">
             <h2>Teacher Lesson Calendar</h2>
-                <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
+                <Modal className={'modal-content'} isOpen={isModalOpen} onClose={() => toggleModal(false)}>
                     <div className="tabs">
                         <button
                             className={activeTab === 'login' ? 'active' : ''}

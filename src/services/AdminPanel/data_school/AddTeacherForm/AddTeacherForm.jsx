@@ -4,6 +4,7 @@ import './AddTeacherForm.css';
 
 const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeacher, teacherId }) => {
     const [teacherName, setTeacherName] = useState('');
+    const [teacherImg, setTeacherImg] = useState('');
     const [lang, setLang] = useState('');
     const [langs, setLangs] = useState([]);
     const [level, setLevel] = useState('');
@@ -14,6 +15,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
     useEffect(() => {
         if (editingTeacher) {
             setTeacherName(editingTeacher.teacherName);
+            setTeacherImg(editingTeacher.teacherImg);
             setLangs(editingTeacher.lang);
         }
     }, [editingTeacher]);
@@ -125,12 +127,13 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
     const handleSubmit = async (e) => {
         e.preventDefault();
         const url = editingTeacher
-            ? `http://localhost:5000/api/updateTeacher/${schoolId}`
-            : `http://localhost:5000/api/addTeacherForSchool`;
+            ? `http://13.60.221.226/api/updateTeacher/${schoolId}`
+            : `http://13.60.221.226/api/addTeacherForSchool`;
         try {
             await axios.put(url, {
                 id: schoolId,
                 teacherName,
+                teacherImg,
                 langs,
                 teacherId,
             }, {
@@ -138,6 +141,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
             });
             fetchSchool();
             setTeacherName('');
+            setTeacherImg('')
             setLang('');
             setLangs([]);
             setEditingTeacher(null);
@@ -148,13 +152,20 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
 
     return (
         <form onSubmit={handleSubmit} className="add-teacher-form">
-            <h1>{editingTeacher ? 'Edit Teacher' : 'Add Teacher'}</h1>
+            <h1>{editingTeacher ? 'Редагувати вчителя' : 'Додати вчителя'}</h1>
             <input
                 className="input-field"
                 type="text"
                 value={teacherName}
                 onChange={(e) => setTeacherName(e.target.value)}
                 placeholder="Teacher Name"
+            />
+            <input
+                className="input-field"
+                type="text"
+                value={teacherImg}
+                onChange={(e) => setTeacherImg(e.target.value)}
+                placeholder="Teacher Image"
             />
             <div className="lang-input-group">
                 <input
@@ -165,11 +176,11 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     placeholder="Add Language"
                 />
                 <button type="button" onClick={addLang} className="add-lang-btn">
-                    Add Language
+                    Додати мову
                 </button>
             </div>
             <div className="langs-list">
-                <h3>Added Languages:</h3>
+                <h3>Додані мови:</h3>
                 <ul>
                     {langs.map((lng) => (
                         <li key={lng.id} className="lang-item">
@@ -180,7 +191,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                                 placeholder="Edit Language"
                             />
                             <button className="delete-btn" onClick={() => handleDeleteLang(lng.id)}>
-                                Delete
+                                ✖
                             </button>
                             <ul>
                                 {lng.level.length > 0 ? (
@@ -193,9 +204,9 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                                                 placeholder="Edit Level"
                                             />
                                             <button className="delete-btn" onClick={() => handleDeleteLevel(lng.id, lvl.id)}>
-                                                Delete
+                                                ✖
                                             </button>
-                                            
+
                                             {/* Class types for each level */}
                                             <ul>
                                                 {lvl.lessonTypes.length > 0 ? (
@@ -226,7 +237,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                                                                 placeholder="Edit Class Type"
                                                             />
                                                             <button className="delete-btn" onClick={() => handleDeleteClassType(lng.id, lvl.id, cls.id)}>
-                                                                Delete Class Type
+                                                                ✖
                                                             </button>
                                                         </li>
                                                     ))
@@ -245,14 +256,14 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                 </ul>
             </div>
 
-            {/* Add level section */}
+            {/* Додати курс section */}
             <div className="add-level-group">
                 <select
                     value={selectedLangId}
                     onChange={(e) => setSelectedLangId(e.target.value)}
                     className="select-field"
                 >
-                    <option value="">Select a language</option>
+                    <option value="">Оберіть мову</option>
                     {langs.map((lng) => (
                         <option key={lng.id} value={lng.id}>
                             {lng.lang}
@@ -264,10 +275,10 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     type="text"
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
-                    placeholder="Add Level"
+                    placeholder="Додати курс"
                 />
                 <button type="button" onClick={addLevel} className="add-level-btn">
-                    Add Level
+                    Додати курс
                 </button>
             </div>
 
@@ -278,7 +289,7 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     onChange={(e) => setSelectedLevelId(e.target.value)}
                     className="select-field"
                 >
-                    <option value="">Select a level</option>
+                    <option value="">Оберіть курс</option>
                     {langs
                         .filter(lng => lng.id === selectedLangId)
                         .flatMap(lng => lng.level)
@@ -296,12 +307,12 @@ const AddTeacherForm = ({ schoolId, fetchSchool, editingTeacher, setEditingTeach
                     placeholder="Add Class Type"
                 />
                 <button type="button" onClick={addClassType} className="add-class-type-btn">
-                    Add Class Type
+                    Додати тип занять
                 </button>
             </div>
 
             <button type="submit" className="submit-btn">
-                {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
+                {editingTeacher ? 'Оновити вчителя' : 'Додати вчителя'}
             </button>
         </form>
     );

@@ -4,6 +4,8 @@ import DatePicker from 'react-datepicker'; // Import DatePicker component
 import 'react-datepicker/dist/react-datepicker.css'; // Import DatePicker CSS
 import { Link } from 'react-router-dom';
 import { formatDateToUkrainian, parseUkrainianDate } from '../../common/utils/smallFn/convertDate';
+import LogoImg from '../../services/images/Group12.svg'
+
 import './userProfile.css';
 
 const UserProfile = () => {
@@ -44,7 +46,7 @@ const UserProfile = () => {
         console.log(token)
         if (token) {
             try {
-                const response = await axios.get('http://localhost:5000/api/me', {
+                const response = await axios.get('http://13.60.221.226/api/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const { user, orders } = response.data;
@@ -58,7 +60,7 @@ const UserProfile = () => {
 
     const handleLogout = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/api/logout');
+            const response = await axios.post('http://13.60.221.226/api/logout');
             if (response.status === 200) {
                 setUser(null);
                 setOrders([]);
@@ -80,15 +82,23 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="user-profile">
-            <h2>Особистий кабінет</h2>
-            {user ? (
-                <>
-                    <p>Ім'я користувача: {user.username}</p>
-                    <p>Email: {user.email}</p>
-                    <p>Телефон: {user.phone}</p>
-                    <h3>Ваші записи</h3>
-                    {/* 
+        <div className='mains'>
+            <div className='containers'>
+                <div className="user-profile">
+                    <div className='logos'>
+                        <div className='logos-items'>
+                            <Link to={`/${schoolId}`}><img src={LogoImg} alt="Logo" /></Link>
+                            <div className='logo-names'>Мовна школа <span>EAGLES</span></div>
+                        </div>
+                    </div>
+                    <h2>Особистий кабінет</h2>
+                    {user ? (
+                        <>
+                            <strong>Вітаємо, {user.username}</strong>
+                            {/* <p>Email: {user.email}</p>
+                            <p>Телефон: {user.phone}</p> */}
+                            <h3>Ваші записи</h3>
+                            {/* 
                     <div>
                         <button onClick={() => setTeacherFilter('')}>Показати всіх</button>
                         {uniqueTeachers.map((teacher, idx) => (
@@ -98,100 +108,102 @@ const UserProfile = () => {
                         ))}
                     </div> */}
 
-                    {/* DatePicker for date filtering */}
-                    <DatePicker
-                        selected={selectedBookingDate}
-                        onChange={(date) => setSelectedBookingDate(date)}
-                        dateFormat="yyyy-MM-dd"
-                        isClearable
-                        placeholderText="Виберіть дату для фільтрації записів"
-                        inline
-                        highlightDates={highlightedBookingDates}
-                    />
+                            {/* DatePicker for date filtering */}
+                            <DatePicker
+                                selected={selectedBookingDate}
+                                onChange={(date) => setSelectedBookingDate(date)}
+                                dateFormat="yyyy-MM-dd"
+                                isClearable
+                                placeholderText="Виберіть дату для фільтрації записів"
+                                inline
+                                highlightDates={highlightedBookingDates}
+                            />
 
-                    {/* Filtered orders by selected date */}
-                    {selectedBookingDate && <p>Вибрана дата: {selectedBookingDate.toLocaleDateString()}</p>}
+                            {/* Filtered orders by selected date */}
+                            {selectedBookingDate && <p>Вибрана дата: {selectedBookingDate.toLocaleDateString()}</p>}
 
-                    {orders.length > 0 ? (
-                        <ul className="orders-list">
+                            {orders.length > 0 ? (
+                                <ul className="orders-list">
 
-                            {filterByDate(orders, selectedBookingDate)
-                                .map((order, index) => {
-                                    let formattedSlots = [];
+                                    {filterByDate(orders, selectedBookingDate)
+                                        .map((order, index) => {
+                                            let formattedSlots = [];
 
-                                    try {
-                                        const slots = order.time;
-                                        formattedSlots = slots.map(slot => ({
-                                            teacherName: slot.teacherName,
-                                            lang: slot.lang,
-                                            levelName: slot.levelName,
-                                            lessonTypes: slot.lessonTypes,
-                                            time: formatDateToUkrainian(slot.time)
-                                        }));
-                                    } catch (e) {
-                                        console.error('Invalid time format:', order.time);
-                                    }
+                                            try {
+                                                const slots = order.time;
+                                                formattedSlots = slots.map(slot => ({
+                                                    teacherName: slot.teacherName,
+                                                    lang: slot.lang,
+                                                    levelName: slot.levelName,
+                                                    lessonTypes: slot.lessonTypes,
+                                                    time: formatDateToUkrainian(slot.time),
+                                                    payment_status: slot.payment_status
+                                                }));
+                                            } catch (e) {
+                                                console.error('Invalid time format:', order.time);
+                                            }
 
-                                    const filteredSlots = formattedSlots
-                                        ? formattedSlots.filter(slot => {
-                                            const slotDate = new Date(parseUkrainianDate(slot.time));
-                                            return slotDate instanceof Date && !isNaN(slotDate) &&
-                                                selectedBookingDate instanceof Date && !isNaN(selectedBookingDate) &&
-                                                slotDate.getDate() === selectedBookingDate.getDate();
-                                        })
-                                        : [];
+                                            const filteredSlots = formattedSlots
+                                                ? formattedSlots.filter(slot => {
+                                                    const slotDate = new Date(parseUkrainianDate(slot.time));
+                                                    return slotDate instanceof Date && !isNaN(slotDate) &&
+                                                        selectedBookingDate instanceof Date && !isNaN(selectedBookingDate) &&
+                                                        slotDate.getDate() === selectedBookingDate.getDate();
+                                                })
+                                                : [];
 
-                                    // Условие для предотвращения рендера пустого заказа
-                                    if (filteredSlots.length === 0) return null;
+                                            // Условие для предотвращения рендера пустого заказа
+                                            if (filteredSlots.length === 0) return null;
+                                            console.log(filteredSlots)
+                                            return (
+                                                <li key={index}>
 
-                                    return (
-                                        <li key={index}>
-                                            <strong>Мова:</strong> {order.lang} <br />
-                                            <strong>Курс:</strong> {order.levelName} <br />
-                                            <strong>Часи:</strong>
-                                            <ul>
-                                                {filteredSlots.map((slot, idx) => (
-                                                    <li key={idx} style={{ marginBottom: '10px' }}>
-                                                        <strong>Запис на урок:</strong>
-                                                        <div><strong>Вчитель:</strong> {slot.teacherName}</div>
-                                                        <div><strong>Мова:</strong> {slot.lang}</div>
-                                                        <div><strong>Рівень:</strong> {slot.levelName}</div>
-                                                        <div><strong>Тип уроку:</strong> {slot.lessonTypes}</div>
-                                                        <div><strong>Час:</strong> {slot.time}</div>
+                                                    <ul>
+                                                        {filteredSlots.map((slot, idx) => (
+                                                            <li key={idx} style={{ marginBottom: '10px' }}>
+                                                                <div className='order-item'>
+                                                                    <strong>Запис на урок:</strong>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Вчитель:</div> <div className='order-item-el-desc'>{slot.teacherName}</div></div>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Мова:</div> <div className='order-item-el-desc'>{slot.lang}</div></div>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Рівень:</div> <div className='order-item-el-desc'>{slot.levelName}</div></div>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Тип уроку:</div> <div className='order-item-el-desc'>{slot.lessonTypes}</div></div>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Час:</div> <div className='order-item-el-desc'>{slot.time}</div></div>
+                                                                    <div className='order-item-el'><div className='order-item-el-head'>Статус оплати:</div> <div className='order-item-el-desc'>{slot.payment_status}</div></div>
+                                                                </div>
+                                                                {order.students.length > 0 && (
+                                                                    <div className='students-list' style={{ marginTop: '10px' }}>
+                                                                        <div className='students-head'>Студенти:</div>
+                                                                        <ul>
+                                                                            {order.students.map((student, studentIdx) => (
+                                                                                <li key={studentIdx}>
+                                                                                    <div className='student-name'>{student.name}</div>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
 
-                                                        {order.students.length > 0 && (
-                                                            <div style={{ marginTop: '10px' }}>
-                                                                <strong>Студенти:</strong>
-                                                                <ul>
-                                                                    {order.students.map((student, studentIdx) => (
-                                                                        <li key={studentIdx}>
-                                                                            <div>Ім'я: {student.name}</div>
-                                                                            <div>Email: {student.email}</div>
-                                                                            <div>Телефон: {student.phone}</div>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </li>
-                                    );
-                                })}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </li>
+                                            );
+                                        })}
 
-                        </ul>
+                                </ul>
+                            ) : (
+                                <p>Замовлення відсутні.</p>
+                            )}
+                        </>
                     ) : (
-                        <p>Замовлення відсутні.</p>
+                        <p>Завантаження даних користувача...</p>
                     )}
-                </>
-            ) : (
-                <p>Завантаження даних користувача...</p>
-            )}
 
-            <Link to={`/${schoolId}`}>
-                <button className="btn-logout" onClick={handleLogout}>Вийти</button>
-            </Link>
+                    <Link to={`/${schoolId}`}>
+                        <button className="btn-logout" onClick={handleLogout}>Вийти</button>
+                    </Link>
+                </div>
+            </div>
         </div>
     );
 };

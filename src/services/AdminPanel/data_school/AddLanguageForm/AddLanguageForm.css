@@ -183,13 +183,13 @@
 
 /* Delete Button Styling */
 .delete-button {
-    margin-left: 10px;
     padding: 5px 10px;
     background-color: #dc3545;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    margin-left: 10px;
 }
 
 .edit-button{
@@ -202,6 +202,7 @@
     cursor: pointer;
 }
 
-.delete-button:hover {
-    background-color: #c82333;
+.level-item ul li{
+    width: max-content;
 }
+

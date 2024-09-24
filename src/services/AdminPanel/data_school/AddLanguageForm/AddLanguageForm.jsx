@@ -6,6 +6,7 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
     const [lang, setLang] = useState('');
     const [level, setLevel] = useState(''); // For adding a new level
     const [levels, setLevels] = useState([]); // List of levels
+    const [price, setPrice] = useState(null)
     const [selectedLevelId, setSelectedLevelId] = useState(null); // Track selected level for class types
     const [classType, setClassType] = useState(''); // For adding class types
 
@@ -29,19 +30,21 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
 
     // Add a class type to the selected level
     const addClassType = () => {
-        if (selectedLevelId !== null) {
+        if (selectedLevelId !== null && price !== null) { // Check that price is entered
             setLevels(levels.map(lvl => {
                 if (lvl.id === selectedLevelId) {
                     return {
                         ...lvl,
-                        lessonTypes: [...lvl.lessonTypes, { id: Date.now(), typeName: classType }]
+                        lessonTypes: [...lvl.lessonTypes, { id: Date.now(), typeName: classType, price: price }]
                     };
                 }
                 return lvl;
             }));
             setClassType(''); // Reset class type input
+            setPrice(''); // Reset price input
         }
     };
+
 
     // Delete a class type from a specific level
     const deleteClassType = (levelId, classTypeId) => {
@@ -59,9 +62,9 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const endpoint = editingLang 
-            ? `http://localhost:5000/api/editLanguageForSchool/${schoolId}/${editingLang.id}` 
-            : 'http://localhost:5000/api/addLanguageForSchool';
+        const endpoint = editingLang
+            ? `http://13.60.221.226/api/editLanguageForSchool/${schoolId}/${editingLang.id}`
+            : 'http://13.60.221.226/api/addLanguageForSchool';
 
         const payload = {
             id: schoolId,
@@ -108,25 +111,27 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
                     type="text"
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
-                    placeholder="Add Level"
+                    placeholder="Add course"
                     className="input-field"
                 />
                 <button type="button" onClick={addLevel} className="add-button">
-                    Add Level
+                    Додати курс
                 </button>
             </div>
             <div className="levels-list">
-                <h3>Added Levels:</h3>
+                <h3>Додані курси:</h3>
                 <ul>
                     {levels.map(lvl => (
                         <li key={lvl.id} className="level-item">
                             {lvl.levelName}
+
                             <ul>
                                 {lvl.lessonTypes.map(ct => (
                                     <li key={ct.id}>
-                                        {ct.typeName} 
+
+                                        {ct.typeName} - {ct.price}
                                         <button onClick={() => deleteClassType(lvl.id, ct.id)} className="delete-button">
-                                            Delete Class Type
+                                            ✖
                                         </button>
                                     </li>
                                 ))}
@@ -135,7 +140,7 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
                                 type="button"
                                 onClick={() => setSelectedLevelId(lvl.id)}
                                 className={`select-button ${selectedLevelId === lvl.id ? 'selected' : ''}`}>
-                                {selectedLevelId === lvl.id ? 'Selected' : 'Select'} Level for Class Types
+                                {selectedLevelId === lvl.id ? 'Обрано' : 'Обрати'} 
                             </button>
                         </li>
                     ))}
@@ -150,15 +155,23 @@ const AddLanguageForm = ({ schoolId, fetchSchool, editingLang, setEditingLang })
                         placeholder="Add Class Type"
                         className="input-field"
                     />
+                    <input
+                        type="number" // Number input for price
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="Enter Price"
+                        className="input-field"
+                    />
                     <button type="button" onClick={addClassType} className="add-button">
-                        Add Class Type to Selected Level
+                        Додати вид занять до вибраного рівня
                     </button>
                 </div>
             )}
+
             <button type="submit" className="submit-button">
-                {editingLang ? 'Update Language' : 'Add Language with Levels and Class Types'}
+                {editingLang ? 'Оновити дані' : 'Додати мову'}
             </button>
-            {editingLang && <button type="button" onClick={resetForm} className="cancel-button">Cancel Edit</button>}
+            {editingLang && <button type="button" onClick={resetForm} className="cancel-button">Скасувати</button>}
         </form>
     );
 };

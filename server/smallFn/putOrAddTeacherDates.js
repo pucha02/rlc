@@ -10,10 +10,10 @@ const putOrAddTeacherDates = async (SchoolModel, schoolId, teacherId, req, res) 
 
     let level
 
-    if (req.body.levelName) {
+    if (typeof (req.body.levelName) != 'object') {
         level = lang.level.find(lv => lv.levelName === req.body.levelName);
-    } else if (req.body.levelName.levelName) {
-        level = lang.level.find(lv => console.log(lv.levelName === req.body.levelName.levelName));
+    } else {
+        level = lang.level.find(lv => lv.levelName === req.body.levelName.levelName);
     }
     if (!level) return res.status(404).json({ message: 'Level not found' });
 

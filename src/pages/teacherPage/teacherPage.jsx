@@ -17,7 +17,7 @@
 
 //             // Save the new review to the backend
 //             try {
-//                 const response = await fetch(`http://13.53.147.216/api/itemProducts/${id}/reviews`, {
+//                 const response = await fetch(`http://13.53.147.216http://13.60.221.226/api/itemProducts/${id}/reviews`, {
 //                     method: 'POST',
 //                     headers: { 'Content-Type': 'application/json' },
 //                     body: JSON.stringify(newReview)

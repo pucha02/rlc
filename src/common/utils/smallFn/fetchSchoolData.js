@@ -3,7 +3,7 @@ import { parseUkrainianDate } from "./convertDate";
 
 const fetchSchoolData = async (schoolId, level, selectedTimes, language, lang_from_general_cal, lessonTypes, setLang, setAllTeachers, setSchoolData, setError, setLoading) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
+      const response = await axios.get(`http://13.60.221.226/api/schools/${schoolId}`);
       let teachers = response.data[0].ESL.teacher;
 
       if (level) {
@@ -33,8 +33,7 @@ const fetchSchoolData = async (schoolId, level, selectedTimes, language, lang_fr
                   parsedSelectedTimes.some(selectedDate =>
                     lessonTypeObj.date.some(dateObj =>
                       dateObj.workTime.some(workTimeSlot =>
-                        new Date(workTimeSlot.time).getTime() === new Date(parseUkrainianDate(selectedDate)).getTime() && workTimeSlot.slots > 0
-                      )
+                        new Date(new Date(workTimeSlot.time).getTime() + new Date(workTimeSlot.time).getTimezoneOffset() * 60000).getTime() === new Date(new Date(parseUkrainianDate(selectedDate))).getTime() && workTimeSlot.slots > 0                      )
                     )
                   )
                 )

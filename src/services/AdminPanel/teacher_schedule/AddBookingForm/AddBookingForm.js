@@ -45,7 +45,7 @@ function AddBookingForm() {
     };
 
     try {
-      const url = `http://localhost:5000/api/schools/${schoolId}/teachers/${teacherId}/dateses`;
+      const url = `http://13.60.221.226/api/schools/${schoolId}/teachers/${teacherId}/dateses`;
       console.log('Submitting booking:', requestBody);
       const response = await axios.put(url, requestBody);
       console.log('Server response:', response.data);

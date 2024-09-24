@@ -1,16 +1,36 @@
-.field{
+.field {
     position: relative;
+    width: 390px;
 }
 
-.field img{
+.field img {
     position: absolute;
     top: 13px;
     left: 13px;
 }
 
-.reg-order-btn{
-    background-color: #205C48;
+.reg-order-btn {
+    background-color: #205C48CC;
 }
+
+.status-pay button {
+    width: 30%;
+    margin: 0 auto;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-around;
+}
+
+.actions button {
+    width: 40%;
+    margin-top: 42px;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+
 
 .order-form-container {
     max-width: 400px;
@@ -23,19 +43,324 @@
     font-family: Arial, sans-serif;
 }
 
-.order-ul{
+.order-ul {
     height: 240px;
     overflow-y: auto;
 }
 
-@media (max-width: 500px) {
-    .main.final{
+.totalPrice {
+
+    font-weight: 700;
+    font-size: 20px;
+    padding: 10px;
+}
+
+.order-confirm-form .error-message-email{
+    color: red;
+}
+
+.pay-btns {
+    display: flex;
+    justify-content: space-between;
+    width: 70%;
+    margin: 0 auto;
+    margin-top: 40px;
+}
+
+.pay-btns button {
+    width: 40%;
+}
+
+.resultList {
+    padding: 0;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.resultList li {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #205C48CC;
+
+    padding: 10px;
+}
+
+.resultEl {
+    display: block;
+    width: 16.6%;
+}
+
+.resultHead {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.resultHeadMob {
+    display: none;
+}
+
+.order-ul::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 8px;
+    /* Ширина скроллбара */
+}
+
+
+.order-ul::-webkit-scrollbar-thumb {
+    -webkit-appearance: none;
+    background-color: #4D7D6D;
+    /* Цвет ползунка */
+    border-radius: 10px;
+    /* Ширина скроллбара */
+}
+
+
+.order-ul::-webkit-scrollbar-thumb:hover {
+    background-color: #558c79;
+    /* Ширина скроллбара */
+}
+
+.contents-block::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 8px;
+    /* Ширина скроллбара */
+}
+
+
+.contents-block::-webkit-scrollbar-thumb {
+    background-color: #4D7D6D;
+    /* Цвет ползунка */
+    border-radius: 10px;
+    /* Ширина скроллбара */
+}
+
+
+.contents-block::-webkit-scrollbar-thumb:hover {
+    background-color: #558c79;
+    /* Ширина скроллбара */
+}
+
+.studentsList-btn {
+    background-color: #E48324E5;
+    color: white;
+    width: max-content;
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: 12px;
+    width: 150px;
+}
+
+/* .studentsList {
+    position: absolute;
+    left: 48.2%;
+    background-color: #558c79;
+    width: 300px;
+} */
+
+.studentsList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #88a398;
+    padding: 10px;
+    border-radius: 5px;
+    width: 480px;
+    height: 75px;
+    margin: 0 auto;
+}
+
+.students-block {
+    display: flex;
+    justify-content: space-between;
+    width: 480px;
+}
+
+.students-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    color: white;
+}
+
+.contents-block {
+    height: 75px;
+    overflow-y: auto;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 50%;
+}
+
+.triangle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 20px solid #000000;
+    margin-right: 340px;
+    top: 37px;
+}
+
+.content p {
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 3px;
+    text-align: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.delete {
+    color: red;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.student-number {
+    color: #205C48CC;
+    text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+    .pay-btns{
+        margin-top: 0;
+    }
+
+    h2,
+    h3 {
+        font-size: 18px;
+    }
+
+    .main.final {
         display: block;
     }
-    .order-form-container {
+
+    .resultEl {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    .resultList li {
+        display: block;
+        background-color: #f4f4f4;
+    }
+
+    .resultItem,
+    .resultHead {
+        font-size: 14px;
+    }
+
+    .resultHead {
+        display: none;
+        width: 35%;
+        text-align: start;
+    }
+
+    .resultItem {
+        width: 65%;
+        text-align: end;
+        font-size: 12px;
+    }
+
+    .footer-container {
+        display: block;
+    }
+
+    .pay-btns {
+        width: 100%;
 
     }
- .footer-container{
-    display: block;
-  }
+
+    .pay-btns button {
+        font-size: 12px;
+    }
+
+    .order-ul {
+        height: 250px;
+    }
+
+    .status-pay button {
+        width: 90%;
+        font-size: 12px;
+    }
+
+    .resultList {
+        margin: 0;
+    }
+
+    .resultHeadMob {
+        display: block;
+        width: 35%;
+        text-align: start;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .students-block {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+    .field{
+        width: 312px;
+    }
+
+    .studentsList {
+        padding: 0;
+        width: 100%;
+        height: 90px;
+        margin-top: 34px;
+    }
+
+    .studentsList-btn {
+        width: max-content;
+        margin: 0 auto;
+
+    }
+
+    .triangle {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 20px solid #000000;
+        margin-right: 0px;
+        top: -18px;
+        transform: rotate(90deg);
+    }
+
+    .contents-block {
+        height: 90px;
+        overflow-y: auto;
+        width: 50%;
+    }
+
+    
+
+    .order-confirm-form{
+        margin-top: 36px;
+    }
+
+    .actions button{
+        margin-top: 42px;
+        width: 45%;
+    }
+    /* .content p {
+        color: black;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        margin: 3px;
+        text-align: center;
+        width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    } */
 }

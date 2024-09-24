@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { formatDateToUkrainian } from "../../common/utils/smallFn/convertDate";
+import RenderSelectedSlots from "../../common/utils/smallFn/getResultData";
 import generatePaymentURL from "../../common/utils/payments/generatePaymentUrl";
-import checkPaymentStatus from "../../common/utils/payments/checkPaymentStatus";
+import orderRequest from "../../common/utils/payments/orderRequest";
 import { Link } from 'react-router-dom';
-import CryptoJS from 'crypto-js';
 import LogoImg from '../../services/images/Group12.svg'
 import Modal from "../../common/components/modal/modal";
 import Login from "../regPages/Login";
@@ -27,20 +27,71 @@ const FinalPage = () => {
   const [levelName, setLevelName] = useState('');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessageEmail, setErrorMessageEmail] = useState('');
   const [order, setOrder] = useState(null);
   const [time, setTime] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState(null);
   const [students, setStudents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [paymentStatus, setPaymentStatus] = useState('Не оплачено');
+  const [activeTabResult, setActiveTabResult] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [orderId, setOrderId] = useState()
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
-  const [autoFill, setAutoFill] = useState(false);
+  const [isEmailInvalid, setIsEmailInvalid] = useState(false);
 
   const location = useLocation();
   const { language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count, schoolId } = location.state || {};
 
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await axios.get('http://13.60.221.226/api/checkpaymentstatus', {
+          params: { orderId }
+        });
+
+        console.log(response.data)
+        // Останавливаем проверку, если оплата прошла успешно
+        if (response.data === 'success') {
+          try {
+            setPaymentStatus('Оплачено');
+            setMessage('Оплату успішно підтверджено.');
+
+            // Отправляем данные заказа на сервер
+            const resp = await axios.post('http://13.60.221.226/api/registerorder', {
+              username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students, payment_status: 'Оплачено'
+            });
+
+            if (resp.status === 201) {
+              // Если время было успешно забронировано
+              const bookedTimes = resp.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+              setMessage(`Час заброньовано: ${bookedTimes.join(', ')}`);
+            }
+          } catch (error) {
+            if (error.response && error.response.status === 400) {
+              const bookedTimes = error.response.data.bookedSlots.map(slot => formatDateToUkrainian(slot));
+              const unBookedTimes = error.response.data.unBookedSlots.map(slot => formatDateToUkrainian(slot));
+
+              let errorMessage = `Ви вже маєте запис на час: ${bookedTimes.join(', ')}`;
+
+              if (unBookedTimes.length > 0) {
+                errorMessage += `\nУспішно заброньовані: ${unBookedTimes.join(', ')}`;
+              }
+
+              setErrorMessage(errorMessage);
+            } else {
+              setErrorMessage(error.response ? error.response.data.error : 'Виникла помилка');
+            }
+          }
+          clearInterval(intervalId);
+        }
+      } catch (error) {
+        console.error("Ошибка проверки статуса оплаты", error);
+      }
+    }, 5000); // Проверяем каждые 5 секунд
+
+    return () => clearInterval(intervalId);  // Чистим интервал при размонтировании компонента
+  }, [orderId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,9 +117,13 @@ const FinalPage = () => {
         setStudents(initialStudents);
       }
     };
-
     fetchData();
   }, [count]);
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
 
   const handleStudentChange = (index, field, value) => {
     const updatedStudents = [...students];
@@ -76,25 +131,24 @@ const FinalPage = () => {
     setStudents(updatedStudents);
   };
 
-  const handleFillMe = () => {
-    const updatedStudents = [...students];
-    updatedStudents[0] = { name: username, email, phone };
-    setStudents(updatedStudents);
-  };
-
   const toggleModal = (open = !isModalOpen) => {
     setIsModalOpen(open);
+    setActiveTabResult(open)
+  };
+
+  const toggleModalResult = (open = !activeTabResult) => {
+    setActiveTabResult(open)
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
+    // const token = localStorage.getItem('token');
 
-    if (!token) {
-      toggleModal(true);
-      return;
-    }
+    // if (!token) {
+    //   toggleModal(true);
+    //   return;
+    // }
 
     try {
       const newOrderId = `order_${Math.random().toString(36).substr(2, 9)}`;
@@ -106,35 +160,36 @@ const FinalPage = () => {
       window.open(paymentUrl, '_blank');
     } catch (error) {
       console.error('Ошибка при оплате или отправке данных', error);
-      setErrorMessage('Произошла ошибка при оплате');
+      setErrorMessage('Сталася помилка під час оплати');
     }
   };
 
-
   const handleNext = () => {
+    // Проверяем валидность email при нажатии на кнопку
+    if (!isValidEmail(email)) {
+      setErrorMessageEmail('Email введено неправильно');
+      return; // Прерываем выполнение функции, если email некорректен
+    }
+  
+    setErrorMessageEmail('');
+  
+    // Переходим к следующему студенту
     if (currentStudentIndex < students.length - 1) {
       setCurrentStudentIndex(currentStudentIndex + 1);
+    }
+  };
+  
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  
+    if (errorMessageEmail) {
+      setErrorMessageEmail(''); // Очищаем сообщение, если оно было выведено
     }
   };
 
   const handleBack = () => {
     if (currentStudentIndex > 0) {
       setCurrentStudentIndex(currentStudentIndex - 1);
-    }
-  };
-
-  const handleAutoFillChange = (e) => {
-    setAutoFill(e.target.checked);
-
-    if (e.target.checked) {
-      // Если переключатель включен, автоматически заполняем первую форму
-      handleStudentChange(0, 'name', username);
-      handleStudentChange(0, 'email', email);
-      handleStudentChange(0, 'phone', phone);
-    } else{
-      handleStudentChange(0, 'name', '');
-      handleStudentChange(0, 'email', '');
-      handleStudentChange(0, 'phone', '');
     }
   };
 
@@ -145,10 +200,11 @@ const FinalPage = () => {
           <div className='logo'>
             <div className='logo-items'>
               <Link to={`/${schoolId}`}><img src={LogoImg} alt="Logo" /></Link>
+              <div className='logo-name'>Мовна школа <span>EAGLES</span></div>
             </div>
           </div>
           <div className="auth-form-container">
-            <Modal isOpen={isModalOpen} onClose={() => toggleModal(false)}>
+            <Modal className={'modal-content'} isOpen={isModalOpen} onClose={() => toggleModal(false)}>
               <div className="tabs">
                 <button
                   className={activeTab === 'login' ? 'active' : ''}
@@ -166,108 +222,121 @@ const FinalPage = () => {
               {activeTab === 'login' ? <Login /> : <Registration />}
             </Modal>
             <h2>Підтвердження запису</h2>
-            <form onSubmit={handleSubmit}>
-              {/* <div className="field">
-                <img src={UserIconImg} alt="" />
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div> */}
+            <form className="order-confirm-form" onSubmit={handleSubmit}>
+
               <div className="field">
                 <img src={UserIconImg} alt="" />
                 <input
                   type="email"
                   placeholder="Email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                 />
+                <p className="error-message-email">{errorMessageEmail}</p>
               </div>
-              {/* <div className="field">
-                <img src={PhoneIconImg} alt="" />
-                <input
-                  type="phone"
-                  placeholder="Phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div> */}
 
-{students.length > 0 && (
-            <>
-              <div key={currentStudentIndex}>
-                <h4>Студент {currentStudentIndex + 1}</h4>
-                {/* Чекбокс для автозаполнения */}
-                {currentStudentIndex === 0 && (
-                  <div className="auto-fill">
-                    <input
-                      type="checkbox"
-                      id="auto-fill"
-                      checked={autoFill}
-                      onChange={handleAutoFillChange}
-                    />
-                    <label htmlFor="auto-fill">Заполнить данными профиля</label>
+              {students.length > 0 && (
+                <>
+                  <div key={currentStudentIndex}>
+                    <h4 className="student-number">Студент {currentStudentIndex + 1}</h4>
+
+                    <div className="field">
+                      <img src={UserIconImg} alt="" />
+                      <input
+                        type="text"
+                        placeholder="Ім'я студента"
+                        value={students[currentStudentIndex].name}
+                        onChange={(e) =>
+                          handleStudentChange(currentStudentIndex, 'name', e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="field">
+                      <img src={PhoneIconImg} alt="" />
+                      <input
+                        type="phone"
+                        placeholder="Телефон студента"
+                        value={students[currentStudentIndex].phone}
+                        onChange={(e) =>
+                          handleStudentChange(currentStudentIndex, 'phone', e.target.value)
+                        }
+                      />
+                    </div>
                   </div>
-                )}
-                <input
-                  type="text"
-                  placeholder="Ім'я студента"
-                  value={students[currentStudentIndex].name}
-                  onChange={(e) => handleStudentChange(currentStudentIndex, 'name', e.target.value)}
-                />
-                {/* <input
-                  type="email"
-                  placeholder="Email студента"
-                  value={students[currentStudentIndex].email}
-                  onChange={(e) => handleStudentChange(currentStudentIndex, 'email', e.target.value)}
-                /> */}
-                <input
-                  type="phone"
-                  placeholder="Телефон студента"
-                  value={students[currentStudentIndex].phone}
-                  onChange={(e) => handleStudentChange(currentStudentIndex, 'phone', e.target.value)}
-                />
-              </div>
-              <div className="actions">
-                {currentStudentIndex > 0 && <button type="button" onClick={handleBack}>Назад</button>}
-                {currentStudentIndex < students.length - 1 && <button type="button" onClick={handleNext}>Далі</button>}
-                {currentStudentIndex === students.length - 1 && <button type="submit">Оплатити</button>}
-              </div>
-            </>
-          )}
 
-              {/* <div className="actions">
-                <button type="button" className="fill-me-button" onClick={handleFillMe}>Заповнити моїми даними</button>
-                <button type="submit" className="submit-button">Оплатити</button>
-              </div> */}
+                  <div className="actions">
+                    {currentStudentIndex > 0 && (
+                      <button type="button" onClick={handleBack}>
+                        Назад
+                      </button>
+                    )}
 
+                    {currentStudentIndex < students.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        
+                      // disabled={!students[currentStudentIndex].name || !students[currentStudentIndex].phone || !isValidEmail(email)}
+                      >
+                        Далі
+                      </button>
+                    )}
+
+                    {currentStudentIndex === students.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleModalResult(true)}
+                        disabled={!students[currentStudentIndex].name || !students[currentStudentIndex].phone || !isValidEmail(email)}
+                      >
+                        Оплатити
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+              <div>
+                <Modal className={'modal-content-result'} isOpen={activeTabResult} onClose={() => toggleModalResult(false)}>
+                  <div >
+                    <div className="">
+                      <h2>Підсумок</h2>
+                      <div className="studentsList" >
+                        <span className="modal-close" onClick={() => toggleModalResult(false)}>&times;</span>
+                        {/* <div className="triangle"></div> */}
+                        <div className="students-block">
+                          <div className="students-head">Учні:</div>
+                          <div className="contents-block">
+                            {students.map((student, index) => (
+                              <div className="content" key={index}>
+                                <p>{student.name}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      {language && <div>{teacherName}{RenderSelectedSlots(language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count, schoolId)}</div>}
+                      {lang_from_general_cal && <div>{RenderSelectedSlots(language, level, lang_from_general_cal, teacherId, teacherName, lessonTypes, count, schoolId)}</div>}
+                    </div>
+                    <div className="pay-btns">
+                      <button type="submit">Оплатити</button>
+                      <button type="button" onClick={() => {
+                        orderRequest({
+                          username, email, phone, order, time, lang, levelName, teacherId, teacherName, lessonTypes, selectedSlots, count, students, setMessage, setErrorMessage
+                        });
+                        toggleModalResult(false); // Вызов дополнительной функции
+                      }}>Зробити заявку</button>
+                    </div>
+                    <div className="status-pay">
+                      <h3>{paymentStatus && <div>Статус платежу: {paymentStatus}</div>}</h3>
+
+                    </div>
+                  </div>
+                </Modal>
+              </div>
               <p>{message}</p>
               <p className="error-message">{errorMessage}</p>
 
-              <div>
-                <h3>Статус платежу: {paymentStatus}</h3>
-                <button type="button" onClick={() => checkPaymentStatus({
-                  orderId: localStorage.getItem('OrderId'),
-                  username,
-                  email,
-                  phone,
-                  order,
-                  time,
-                  lang,
-                  levelName,
-                  teacherId,
-                  teacherName,
-                  lessonTypes,
-                  selectedSlots,
-                  count,
-                  students,
-                  setPaymentStatus,
-                  setMessage,
-                  setErrorMessage
-                })}>Перевірити статус оплати</button>
-              </div>
+
             </form>
           </div>
         </div >

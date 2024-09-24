@@ -14,11 +14,11 @@ const SchoolForm = ({ school, fetchSchools }) => {
         e.preventDefault();
         try {
             if (school) {
-                await axios.put(`http://localhost:5000/api/schools/${school._id}`, formData);
+                await axios.put(`http://13.60.221.226/api/schools/${school._id}`, formData);
             } else {
                 // Generate an ID before creating a new school
                 formData.ESL.id = uuidv4();
-                await axios.post('http://localhost:5000/api/schools', formData);
+                await axios.post('http://13.60.221.226/api/schools', formData);
             }
             fetchSchools();
         } catch (error) {

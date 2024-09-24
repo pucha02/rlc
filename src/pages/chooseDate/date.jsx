@@ -21,9 +21,9 @@ const Date = () => {
 
   const HandleFinish = () => {
     if (allTeachers) {
-      return '/teacher';
+      return `/teacher`;
     } else if (teacherDate) {
-      return '/final';
+      return `/final`;
     }
 
   };

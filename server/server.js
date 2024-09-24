@@ -1,4 +1,5 @@
 const { parseUkrainianDate, formatDateToUkrainian } = require('./smallFn/convertDate')
+const sendTelegramMessage = require('./smallFn/sendToTelegram')
 const processBooking = require('./smallFn/processBookingForRegisterOrder')
 const putOrAddTeacherDates = require('./smallFn/putOrAddTeacherDates')
 const { findSchoolById, findTeacherById, findLanguageById, removeById, addToSchoolArray } = require('./smallFn/findFunction')
@@ -18,7 +19,9 @@ const secret = 'jwt_secret';
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: '*'
+}));
 
 mongoose.connect('mongodb+srv://seksikoleg5:se4HivNRYKdydnzc@cluster0.pdc2rrh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
     useNewUrlParser: true,
@@ -162,6 +165,8 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/registerorder', async (req, res) => {
     let { username, email, phone, teacherName, lang, levelName, teacherId, lessonTypes, time, count, students, payment_status } = req.body;
     let selectedSlots = req.body.selectedSlots ? JSON.parse(req.body.selectedSlots) : [];
+    const telegramBotToken = '7682485198:AAH43veMPHhwbujnc58ca7WpJCw02ef0NeI'; // Замените на токен вашего бота
+    const telegramChannelId = '-1002442687424';
     try {
         const bookedSlots = [];
         const unBookedSlots = []
@@ -194,8 +199,19 @@ app.post('/api/registerorder', async (req, res) => {
             // Если есть хотя бы один незабронированный слот, создаем новый заказ
             if (unBookedSlots.length > 0) {
                 const newOrder = new Order({ username, email, phone, teacherName, lang, levelName, time: order, students });
-                console.log('ЗДЕЕСЬ', teacherName)
+                console.log('ЗДЕЕСЬ', order)
                 await newOrder.save();
+                await sendTelegramMessage(telegramBotToken, telegramChannelId, {
+                    username,
+                    email,
+                    phone,
+                    teacherName,
+                    lang,
+                    levelName,
+                    order,
+                    students,
+                    payment_status
+                });
             }
 
             // Возвращаем ответ с правильным статусом и информацией о слотах
@@ -341,9 +357,9 @@ app.put('/api/addLanguageForSchool', async (req, res) => {
 
 // Добавление учителя для школы
 app.put('/api/addTeacherForSchool', async (req, res) => {
-    const { id, teacherName, langs } = req.body;
+    const { id, teacherName, langs, teacherImg } = req.body;
 
-    const newTeacher = { data: { teacherName: teacherName, teacherId: uuidv4(), lang: langs } };
+    const newTeacher = { data: { teacherName: teacherName, teacherImg: teacherImg, teacherId: uuidv4(), lang: langs } };
 
     try {
         const school = await addToSchoolArray(SchoolModel, id, 'ESL.teacher', newTeacher);
@@ -377,9 +393,9 @@ app.put('/api/editLanguageForSchool/:schoolId/:langId', async (req, res) => {
 });
 
 // Маршрут для удаления языка
-app.delete('/api/api/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
+app.delete('/api/deleteLanguageFromSchool/:schoolId/:langId', async (req, res) => {
     const { schoolId, langId } = req.params;
-
+    console.log(req)
     try {
         const school = await findSchoolById(schoolId, SchoolModel);
         if (!school) return res.status(404).json({ message: 'School not found' });
@@ -469,7 +485,7 @@ app.delete('/api/deleteTeacherFromSchool/:schoolId/:teacherId', async (req, res)
 // Обновить учителя
 app.put('/api/updateTeacher/:schoolId', async (req, res) => {
     const { schoolId } = req.params;
-    const { id, teacherName, langs, teacherId } = req.body;
+    const { id, teacherName, langs, teacherId, teacherImg } = req.body;
 
     try {
         const school = await SchoolModel.findOne({ id: schoolId });
@@ -480,6 +496,7 @@ app.put('/api/updateTeacher/:schoolId', async (req, res) => {
         if (teacher) {
             teacher.data.teacherName = teacherName;
             teacher.data.lang = langs;
+            teacher.data.teacherImg = teacherImg;
         }
 
         await school.save();
@@ -528,15 +545,7 @@ app.delete('/api/deleteLevel/:schoolId/:teacherId/:langId/:levelId', async (req,
         res.status(404).send(err.message);
     }
 });
-function formatISOToCustom(inputDate) {
-    // Convert the input date string into a Date object
-    let date = new Date(inputDate);
 
-    // Extract the date components and build the string in the desired format
-    let formattedDate = date.toISOString().replace('Z', '+00:00');
-
-    return formattedDate;
-}
 
 app.put('/api/updatePaymentStatus', async (req, res) => {
     const { orderId, teacherId, lang, levelName, lessonTypes, time, newStatus } = req.body;
@@ -580,7 +589,7 @@ app.delete('/api/deleteTimeEntry', async (req, res) => {
             {
                 _id: orderId,
             })
-            
+
         const order = await Order.findOneAndUpdate(
             {
                 _id: orderId,
@@ -677,25 +686,7 @@ const publicKey = 'sandbox_i38312250017'; // Замените на ваш пуб
 const privateKey = 'sandbox_FRDaasO0MmnhPbbp9U3d8DylKxr6ah8ppwkWKCcY'; // Замените на ваш приватный ключ
 
 // Endpoint для обработки результатов оплаты
-app.post('/api/handlepaymentresult', async (req, res) => {
-    const { data, signature } = req.body;
 
-    // Проверка подписи
-    const signString = crypto.createHash('sha1').update(privateKey + data + privateKey).digest('base64');
-
-    if (signature === signString) {
-        // Разбор данных
-        const paymentData = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
-
-        if (paymentData.status === 'success') {
-            res.status(200).send({ message: 'Оплата подтверждена' });
-        } else {
-            res.status(400).send({ message: 'Платеж не прошел' });
-        }
-    } else {
-        res.status(400).send({ message: 'Неверная подпись' });
-    }
-});
 
 // Endpoint для проверки статуса оплаты
 app.get('/api/checkpaymentstatus', async (req, res) => {
@@ -728,6 +719,35 @@ app.get('/api/checkpaymentstatus', async (req, res) => {
         console.error('Ошибка при проверке статуса оплаты:', error);
         res.status(500).send({ message: 'Ошибка при проверке оплаты' });
     }
+});
+
+app.post('/api/liqpay-webhook', (req, res) => {
+    const { data, signature } = req.body;
+
+    const privateKey = 'sandbox_FRDaasO0MmnhPbbp9U3d8DylKxr6ah8ppwkWKCcY';  // Замените на ваш приватный ключ
+
+    // Проверка подписи
+    const generatedSignature = crypto.createHash('sha1')
+        .update(privateKey + data + privateKey)
+        .digest('base64');
+
+    if (generatedSignature !== signature) {
+        return res.status(400).send('Неверная подпись');
+    }
+
+    // Расшифровываем данные
+    const decodedData = Buffer.from(data, 'base64').toString('utf8');
+    const paymentData = JSON.parse(decodedData);
+
+    // Проверка статуса платежа
+    if (paymentData.status === 'success') {
+        // Платеж прошел успешно
+        console.log(`Платеж ${paymentData.order_id} успешно завершен`);
+        // Здесь можно обновить статус в базе данных или выполнить другие действия
+    }
+
+    // Отправляем успешный ответ LiqPay
+    res.status(200).send('OK');
 });
 
 const PORT = process.env.PORT || 5000;

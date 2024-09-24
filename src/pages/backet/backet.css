@@ -73,7 +73,7 @@
     background-color: #218838;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 800px) {
     .reg-btn-container h2 {
         font-size: 14px;
         padding-right: 0;

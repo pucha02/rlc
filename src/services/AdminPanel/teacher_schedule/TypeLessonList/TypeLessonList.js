@@ -14,7 +14,7 @@ function TypeLessonList() {
 
     return (
         <div className='teacher-list-container'>
-            <h1>Оберіть курс</h1>
+            <h1>Оберіть Тип занять</h1>
 
             <div className='teacher-list'>
                 {

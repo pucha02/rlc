@@ -82,7 +82,7 @@ function EditBookingForm() {
     };
     console.log('Submitting booking:', requestBody);
     try {
-      await axios.put(`http://localhost:5000/api/schools/${schoolId}/teachers/${teacherId}/dates`, requestBody);
+      await axios.put(`http://13.60.221.226/api/schools/${schoolId}/teachers/${teacherId}/dates`, requestBody);
       console.log('Booking updated successfully');
       navigate(`/${schoolId}/admin`);
     } catch (error) {

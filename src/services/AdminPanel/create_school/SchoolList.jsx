@@ -12,7 +12,7 @@ const SchoolList = () => {
 
 
     const fetchSchools = async () => {
-        const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
+        const res = await axios.get(`http://13.60.221.226/api/schools/${schoolId}`);
         setSchools(res.data);
     };
 
@@ -21,7 +21,7 @@ const SchoolList = () => {
     };
 
     const handleDelete = async (id) => {
-        await axios.delete(`http://localhost:5000/api/schools/${id}`);
+        await axios.delete(`http://13.60.221.226/api/schools/${id}`);
         fetchSchools();
     };
 

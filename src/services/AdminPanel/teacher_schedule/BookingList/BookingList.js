@@ -21,7 +21,7 @@ function BookingList() {
 
   const getTeachersOrder = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/teacherOrders', {
+      const response = await axios.get('http://13.60.221.226/api/teacherOrders', {
         params: { teacherId, lessonTypes }
       });
       if (response.status === 200) {
@@ -84,7 +84,7 @@ function BookingList() {
       );
 
       // Отправляем обновление на сервер
-      await axios.put(`http://localhost:5000/api/updatePaymentStatus`, {
+      await axios.put(`http://13.60.221.226/api/updatePaymentStatus`, {
         orderId,
         teacherId,
         lang,
@@ -101,7 +101,7 @@ function BookingList() {
   const handleDeleteTimeEntry = async (orderId, teacherId, lang, levelName, lessonTypes, time) => {
     try {
       // Выполняем запрос на удаление
-      await axios.delete(`http://localhost:5000/api/deleteTimeEntry`, {
+      await axios.delete(`http://13.60.221.226/api/deleteTimeEntry`, {
         data: { orderId, teacherId, lang, levelName, lessonTypes, time }
       });
 
@@ -152,7 +152,7 @@ function BookingList() {
 
   return (
     <div className="booking-list-container">
-      <h1 className="booking-list-title">Bookings</h1>
+      <h1 className="booking-list-title">{lang} / {level} / {lessonTypes}</h1>
       <Link
         to="/add-booking"
         state={{ booking, lang, level, teacherId, lessonTypes, schoolId }}
@@ -188,10 +188,14 @@ function BookingList() {
                   && el.teacherId === teacherId
                   && (!selectedDate || elDate === selectedDateString);
               }).map((el, id) => (
-                <div key={id}>
-                  <div>
+                <div className='teachers-student-block' key={id}>
+
+                  <div className='teachers-student-time'>
                     {new Date(el.time).toLocaleDateString()}{' '}
                     {`${String(new Date(el.time).getUTCHours()).padStart(2, '0')}:${String(new Date(el.time).getUTCMinutes()).padStart(2, '0')}:${String(new Date(el.time).getUTCSeconds()).padStart(2, '0')}`}
+                  </div>
+
+                  <div className='select'>
                     <select
                       value={el.payment_status}
                       onChange={(e) => handlePaymentStatusChange(
@@ -207,20 +211,21 @@ function BookingList() {
                       <option value="Не оплачено">Не оплачено</option>
                       <option value="Оплачено">Оплачено</option>
                     </select>
-                    <p>{el.payment_status}</p>
-                    <p>{el.teacherName}</p>
-                    <div onClick={() => handleDeleteTimeEntry(
-                      order._id,
-                      el.teacherId,
-                      el.lang,
-                      el.levelName,
-                      el.lessonTypes,
-                      el.time)}>
-                      УДАЛИТЬ</div>
                   </div>
-                  <div>
+
+
+                  <div className='delete-btn' onClick={() => handleDeleteTimeEntry(
+                    order._id,
+                    el.teacherId,
+                    el.lang,
+                    el.levelName,
+                    el.lessonTypes,
+                    el.time)}>
+                    ✖</div>
+
+                  <div className='students-names'>
                     {el.students.map((std, index) => (
-                      <div key={index}>
+                      <div className='students-names-els' key={index}>
                         <p>{std.name}</p>
                       </div>
                     ))}

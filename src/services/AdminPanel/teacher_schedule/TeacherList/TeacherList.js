@@ -9,7 +9,7 @@ function TeacherList({ schoolId }) {
     useEffect(() => {
         async function fetchBookings() {
             try {
-                const response = await axios.get(`http://localhost:5000/api/bookings/${schoolId}`);
+                const response = await axios.get(`http://13.60.221.226/api/bookings/${schoolId}`);
                 setBookings(response.data);
             } catch (error) {
                 console.error('Error fetching bookings:', error);

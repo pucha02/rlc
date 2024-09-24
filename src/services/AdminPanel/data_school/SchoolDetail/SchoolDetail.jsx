@@ -14,7 +14,7 @@ const SchoolDetail = () => {
     const { schoolId } = location.state || {};
     console.log(schoolId)
     const fetchSchool = async () => {
-        const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}`);
+        const res = await axios.get(`http://13.60.221.226/api/schools/${schoolId}`);
         setSchool(res.data[0]);
         console.log(res.data);
     };
@@ -25,7 +25,7 @@ const SchoolDetail = () => {
 
     const deleteLanguage = async (languageId) => {
         try {
-            await axios.delete(`http://localhost:5000/api/api/deleteLanguageFromSchool/${schoolId}/${languageId}`);
+            await axios.delete(`http://13.60.221.226/api/deleteLanguageFromSchool/${schoolId}/${languageId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting language:', error);
@@ -34,7 +34,7 @@ const SchoolDetail = () => {
 
     const deleteLevel = async (languageId, levelId) => {
         try {
-            await axios.delete(`http://localhost:5000/api/api/deleteLevelFromLanguage/${schoolId}/${languageId}/${levelId}`);
+            await axios.delete(`http://13.60.221.226/api/deleteLevelFromLanguage/${schoolId}/${languageId}/${levelId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting level:', error);
@@ -45,7 +45,7 @@ const SchoolDetail = () => {
         try {
             console.log(languageId, levelId, classTypeId); // Check if these values are correct
 
-            await axios.delete(`http://localhost:5000/api/deleteClassTypeFromLevel/${schoolId}`, {
+            await axios.delete(`http://13.60.221.226/api/deleteClassTypeFromLevel/${schoolId}`, {
                 data: { languageId, levelId, classTypeId } // Sending data in the body
             });
 
@@ -59,7 +59,7 @@ const SchoolDetail = () => {
 
     const deleteTeacher = async (teacherId) => {
         try {
-            await axios.delete(`http://localhost:5000/api/deleteTeacherFromSchool/${schoolId}/${teacherId}`);
+            await axios.delete(`http://13.60.221.226/api/deleteTeacherFromSchool/${schoolId}/${teacherId}`);
             fetchSchool();
         } catch (error) {
             console.error('Error deleting teacher:', error);
@@ -76,24 +76,24 @@ const SchoolDetail = () => {
     return (
         <div className="school-detail">
             <h2 className="school-name">{school.ESL.schoolName}</h2>
-            <h3>Languages:</h3>
+            <h3>Мови:</h3>
             <ul className="language-list">
                 {school.ESL.language.map(lang => (
                     <li key={lang.id} className="language-item">
                         {lang.lang}
-                        <button onClick={() => deleteLanguage(lang.id)} className="delete-button">Delete</button>
-                        <button onClick={() => setEditingLang(lang)} className="edit-button">Edit</button>
+                        <button onClick={() => deleteLanguage(lang.id)} className="delete-button">Видалити</button>
+                        <button onClick={() => setEditingLang(lang)} className="edit-button">Редагувати</button>
                         <ul>
                             {lang.level.map(lvl => (
                                 <li key={lvl.id} className="level-item">
                                     {lvl.levelName}
-                                    <button onClick={() => deleteLevel(lang.id, lvl.id)} className="delete-button">Delete Level</button>
+                                    <button onClick={() => deleteLevel(lang.id, lvl.id)} className="delete-button">Видалити</button>
                                     <ul>
                                         {lvl.lessonTypes.map(ct => (
                                             <li key={ct.id} className="class-type-item">
                                                 {ct.typeName}
                                                 {console.log(ct.id)}
-                                                <button onClick={() => deleteClassType(lang.id, lvl.id, ct.id)} className="delete-button">Delete Class Type</button>
+                                                <button onClick={() => deleteClassType(lang.id, lvl.id, ct.id)} className="delete-button">Видалити</button>
                                             </li>
                                         ))}
                                     </ul>
@@ -109,8 +109,8 @@ const SchoolDetail = () => {
                 {school.ESL.teacher.map(t => (
                     <li key={t.data.teacherId} className="teacher-item">
                         {t.data.teacherName}
-                        <button onClick={() => deleteTeacher(t.data.teacherId)} className="delete-button">Delete</button>
-                        <button onClick={() => startEditTeacher(t.data, t.data.teacherId)} className="edit-button">Edit</button>
+                        <button onClick={() => deleteTeacher(t.data.teacherId)} className="delete-button">Видалити</button>
+                        <button onClick={() => startEditTeacher(t.data, t.data.teacherId)} className="edit-button">Редагувати</button>
                     </li>
                 ))}
             </ul>

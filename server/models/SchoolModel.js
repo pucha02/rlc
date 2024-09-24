@@ -1,4 +1,3 @@
-const { type } = require('@testing-library/user-event/dist/type');
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -34,6 +33,7 @@ const LevelSchema = new Schema({
     lessonTypes: [{
         id: { type: String },
         typeName: { type: String },
+        price: { type: String },
         date: [{
             d: { type: Date },
             allSlots: { type: Number },
@@ -55,6 +55,7 @@ const ESLLanguageSchema = new Schema({
 const TeacherDataSchema = new Schema({
     lang: [ESLLanguageSchema],
     teacherId: { type: String },
+    teacherImg: { type: String },
     teacherName: { type: String },
     description: { type: String },
     reviews: [

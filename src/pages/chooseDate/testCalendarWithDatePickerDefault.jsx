@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from "react-router-dom";
 import { mergeWorkAndNonWorkTimes } from '../../common/utils/smallFn/calculateTimes';
 import { parseUkrainianDate } from '../../common/utils/smallFn/convertDate';
+import LogoImg from '../../services/images/Group12.svg'
+
 import { Link } from 'react-router-dom';
 import './date.css'
 
@@ -16,8 +18,8 @@ setOptions({
 function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
   const [dates, setDates] = useState([]);
   const [multiple, setMultiple] = useState([]);
-  const min = '2024-09-01T00:00';
-  const max = '2024-09-20T00:00';
+  const min = '2024-01-01T00:00';
+  const max = '2024-12-15T00:00';
   const [datetimeLabels, setDatetimeLabels] = useState([]);
   const [datetimeInvalid, setDatetimeInvalid] = useState([]);
   const [date, setDate] = useState([]);
@@ -30,7 +32,7 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
   const { lessonTypes } = location.state || {};
   const { count } = location.state || {};
 
-  console.log(count, lessonTypes, allTeachers, level )
+  console.log(count, lessonTypes, allTeachers, level)
 
   const handlePageLoadingDatetime = useCallback(() => {
     const invalid = [];
@@ -108,11 +110,16 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
 
   const handleSaveDates = () => {
     if (Array.isArray(multiple)) {
-      setDates((prevDates) => [...prevDates, ...multiple.map(formatDateTime)]);
+      setDates((prevDates) => {
+        const newDates = multiple.map(formatDateTime);
+        const uniqueDates = [...new Set([...prevDates, ...newDates])]; // Убираем дубликаты
+        return uniqueDates;
+      });
     } else {
       console.error("Expected 'multiple' to be an array, but got:", typeof multiple);
     }
   };
+
 
   const handleChangeMultiple = useCallback((args) => {
     let newValue = args.value;
@@ -140,7 +147,9 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
 
   return (
     <Page className="md-calendar-booking">
+
       <div className="mbsc-form-group">
+    
         <div className="mbsc-form-group-title">Select date & time</div>
         <Datepicker
           display="inline"
@@ -161,29 +170,45 @@ function Calendar2({ HandleFinish, final, teacherId, teacherName, schoolId }) {
         <button onClick={handleSaveDates}>Обрати</button>
       </div>
       <div className="selected-dates">
-        <h3>Обрані слоти:</h3>
+        <h3>Обрані записи:</h3>
         {Array.isArray(dates) && dates.length > 0 ? (
           <ul>
             {dates.map((date, index) => {
 
-              const matchedItem = freeSlot.find(item => new Date(item.time).getTime() === new Date(parseUkrainianDate(date)).getTime() && item.slots > 0);
-              return (
+              const matchedItems = freeSlot.filter(item =>
+                new Date(new Date(item.time).getTime() + new Date(item.time).getTimezoneOffset() * 60000).getTime() === new Date(new Date(parseUkrainianDate(date))).getTime() && item.slots > 0
+              );
+
+              const totalSlots = matchedItems.reduce((sum, item) => sum + item.slots, 0); return (
                 <li key={index}>
-                  {date} {matchedItem && `(Вільних місць: ${matchedItem.slots})`}
-                  <button className='delete-btn' onClick={() => handleRemoveDate(date)}>Видалити</button>
+                  {date} {totalSlots && `(Вільних місць: ${totalSlots})`}
+                  <button className='delete-btn' onClick={() => handleRemoveDate(date)}>
+                    ✖
+                  </button>
                 </li>
               );
             })}
 
           </ul>
         ) : (
-          <p>No dates selected.</p>
+          <p>Немає обраних дат</p>
         )}
         <div className='next-btn'>
-          <Link to={HandleFinish()} state={{ lang_from_general_cal: final, level: level, teacherId: teacherId, teacherName: teacherName, lessonTypes: lessonTypes, schoolId: schoolId, count: count }}><button>Далі</button></Link>
+          <Link to={HandleFinish()} state={{
+            lang_from_general_cal: final,
+            level: level,
+            teacherId: teacherId,
+            teacherName: teacherName,
+            lessonTypes: lessonTypes,
+            schoolId: schoolId,
+            count: count
+          }}>
+            <button disabled={dates.length === 0}>Далі</button>
+          </Link>
         </div>
+
       </div>
-      
+
     </Page>
 
   );
