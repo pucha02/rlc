@@ -1,0 +1,98 @@
+/* Backet.css */
+.backet-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: max-content;
+    margin: 0 auto;
+    height: 12.5vh;
+
+}
+
+.reg-btn-container h2 {
+    margin: 10px;
+    padding-right: 50px;
+}
+
+.reg-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.reg-btn:hover {
+    background-color: #0056b3;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+    margin: 0 auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tabs button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 18px;
+    font-weight: 700;
+    color: black;
+}
+
+.tabs button.active {
+    border-bottom: 2px solid black;
+    border-radius: 0px;
+
+}
+
+.tabs button:hover {
+    background-color: #e6e8eb;
+
+}
+
+.personal-cabinet-btn {
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.personal-cabinet-btn:hover {
+    background-color: #218838;
+}
+
+@media (max-width: 800px) {
+    .reg-btn-container h2 {
+        font-size: 14px;
+        padding-right: 0;
+    }
+
+    .backet-container {
+        width: 100%;
+    }
+
+    .reg-btn-container {
+        width: 100%;
+
+    }
+
+    .personal-cabinet-btn {
+        position: absolute;
+        right: 0;
+    }
+    .tabs{
+        width: 82%;
+    }
+}

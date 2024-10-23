@@ -1,0 +1,9 @@
+.footer-container {    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: max-content;
+    margin: 0 auto;
+    /* margin-top: 50px; */
+    height: 12.5vh;
+}

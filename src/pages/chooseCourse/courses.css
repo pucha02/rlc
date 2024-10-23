@@ -1,0 +1,44 @@
+/* Courses.css */
+.course-page {
+    padding: 2rem;
+  }
+  
+  .course-page-title {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 2rem;
+  }
+  
+  .course-levels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+  }
+  
+  .course-level-card {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 250px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .course-level-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .course-level-link {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    transition: color 0.3s ease;
+  }
+  
+  .course-level-link:hover {
+    color: #007bff;
+  }
+  
