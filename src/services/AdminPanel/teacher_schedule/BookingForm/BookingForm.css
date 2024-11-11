@@ -1,0 +1,119 @@
+/* BookingForm.css */
+
+/* Container for the form */
+.booking-form-container {
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Title of the form */
+  .form-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #333;
+  }
+  
+  /* General styling for form labels */
+  .form-label {
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  /* Input fields styling */
+  .form-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    box-sizing: border-box;
+  }
+  
+  /* Section for work times */
+  .worktime-section {
+    margin-top: 2rem;
+  }
+  
+  /* Title for the work times section */
+  .worktime-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  /* Individual work time item */
+  .worktime-item {
+    background-color: #ffffff;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  /* Hover effect for work time item */
+  .worktime-item:hover {
+    transform: translateY(-3px);
+  }
+  
+  /* Button to remove a work time */
+  .remove-btn {
+    background-color: #ff4d4d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .remove-btn:hover {
+    background-color: #e60000;
+  }
+  
+  /* Button to add a new work time */
+  .add-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .add-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Submit button styling */
+  .submit-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 2rem;
+    display: block;
+    width: 100%;
+    text-align: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-btn:hover {
+    background-color: #218838;
+  }
+  

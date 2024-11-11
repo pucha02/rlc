@@ -1,0 +1,90 @@
+/* SchoolDetail.css */
+.school-detail {
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    width: 100%;
+    margin: auto;
+}
+
+.school-name {
+    font-size: 24px;
+    color: #333;
+}
+
+.language-list,
+.teacher-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.language-item,
+.teacher-item {
+    background-color: #e6e6e6;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+h3 {
+    color: #555;
+}
+
+/* AddTeacherForm.css */
+.add-teacher-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.input-field {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.add-lang-btn,
+.add-level-btn,
+.submit-btn {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-lang-btn:hover,
+.add-level-btn:hover,
+.submit-btn:hover {
+    background-color: #0056b3;
+}
+
+.lang-input-group,
+.add-level-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.langs-list ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.lang-item,
+.level-item {
+    background-color: #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.select-field {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}

@@ -1,4 +1,23 @@
+
+*{
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+}
+
+ul{
+  list-style-type: none;
+}
+
 .App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 
