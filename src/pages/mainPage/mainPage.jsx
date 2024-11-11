@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-import Languages from "../chooseLanguage/language";
-
-const MainPage = () => {
-
-
-  return (
-    <div>
-      <p>MainPage</p>
-      <Languages/>
-    </div>
-  );
-};
-
-export default MainPage;
-=======
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Backet from '../backet/backet';
@@ -74,4 +58,3 @@ const MainPage = () => {
 };
 
 export default MainPage;
->>>>>>> feature/slon/update-calendar

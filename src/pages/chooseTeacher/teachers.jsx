@@ -1,15 +1,4 @@
-<<<<<<< HEAD
-const Teachers = () => {
-    return (
-        <div>
-            <p>Teachers</p>
 
-        </div>
-    )
-}
-
-export default Teachers
-=======
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -194,4 +183,3 @@ const Teachers = () => {
 };
 
 export default Teachers;
->>>>>>> feature/slon/update-calendar

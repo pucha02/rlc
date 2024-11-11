@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-const Backet = () => {
-    return (
-        <div>
-            <p>Backet</p>
 
-        </div>
-    )
-}
-
-=======
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Modal from "../../common/components/modal/modal"
@@ -65,5 +55,4 @@ const Backet = () => {
     )
 }
 
->>>>>>> feature/slon/update-calendar
 export default Backet

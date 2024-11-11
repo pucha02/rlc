@@ -1,15 +1,4 @@
-<<<<<<< HEAD
-const Courses = () => {
-    return (
-        <div>
-            <p>Courses</p>
 
-        </div>
-    )
-}
-
-export default Courses
-=======
 import { useLocation } from "react-router-dom";
 import LanguageSelection from "../../common/components/LanguageSelection/LanguageSelection";
 import { useEffect } from "react";
@@ -43,4 +32,3 @@ const Courses = () => {
 };
 
 export default Courses;
->>>>>>> feature/slon/update-calendar
